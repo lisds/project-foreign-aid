@@ -20,15 +20,21 @@ import pandas as pd
 pd.options.mode.copy_on_write = True
 import numpy as np
 import matplotlib.pyplot as plt
+import numpy.linalg as npl
+
+from jupyprint import jupyprint, arraytex
+# Only show 6 decimals when printing
+np.set_printoptions(precision=6)
+import scipy.stats as sps
+# For interactive widgets.
+from ipywidgets import interact
 ```
 
 ```{python}
-#setting up
 run fetch_data
 ```
 
 ```{python}
-#setting up cont
 run opening_zip_cleaning
 ```
 
@@ -74,7 +80,62 @@ plt.show()
 ```
 
 ```{python}
-# Sum of aid by country - this code is sketchy atm because a lot of the disbursement values are empty, also don't know what the units are
+# Sum of aid by country code - this is sketchy atm because a lot of the disbursement values are empty, also don't know what the units are
 aid_amount_by_country = df.groupby('country_code_WB')['aiddata_disbursement_amount'].sum().sort_values(ascending=False).head(50)
 aid_amount_by_country
+
+# Groups by country and year, then sums the aid disbursement amount
+aid_over_time = df.groupby(['countryname_WB', 'evalyear'])['aiddata_disbursement_amount'].sum().unstack()
+aid_over_time
+```
+
+```{python}
+#This code explores the relationship between rating out of 6 and office presence
+
+#this makes a new column where the office presence is turned into an integer; 0 for no, 1 for yes
+all_aid['Office?'] = all_aid['office_presence'].apply(lambda x: 'no' if x == 0 else 'yes')
+
+#this rounds the floats of rating to 2 decimal places
+all_aid['six_overall_rating'] = pd.to_numeric(all_aid['six_overall_rating'], errors='coerce')
+all_aid['Rating Rounded'] = all_aid['six_overall_rating'].round(2)
+
+#makes an array for office presence
+office_presence = np.array(all_aid['Office?'])
+office_presence
+
+#makesan array for rating
+rating = np.array(all_aid['Rating Rounded'])
+rating
+
+#This makes a scatter for office presence
+
+def plot_office():
+    plt.scatter(office_presence, rating)
+    plt.scatter(['no', 'yes'], [0, 1], alpha = 0)
+    plt.xlabel('Office?')
+    plt.ylabel('Rating')
+    
+plot_office();
+```
+
+```{python}
+np.set_printoptions(precision=6)
+import scipy.stats as sps
+# For interactive widgets.
+from ipywidgets import interact
+import numpy.linalg as npl
+```
+
+```{python}
+#this code adds the mean to each group
+
+no_mean = all_aid[all_aid['Office?'] == 'no']['Rating Rounded'].mean()
+yes_mean = all_aid[all_aid['Office?'] == 'yes']['Rating Rounded'].mean()
+
+plot_office()
+plt.scatter(['no', 'yes'], [no_mean, yes_mean],
+            color = 'red', label = 'mean of each group', marker = 'X')
+plt.plot(['no', 'yes'], [no_mean,yes_mean],
+         color = 'red')
+plt.legend();
 ```
