@@ -16,10 +16,16 @@ with ZipFile(dest_path, 'r') as my_zip:
     csv_path = Path('temp') / csv_filename
     df = pd.read_csv(csv_path)
 
-#  Now to explore some of that data, first set up a dataset of just the first columns that all share: from columns A-AG
-all_aid = df.iloc[:, :33]
-# print(all_aid.head())
-#  We need to clean further in here, and we may want to add the columns at the end? 
+df = df[df['donor'] != '2.950000048']
+df = df.dropna(subset=['donor'])
+
+first_33_columns = df.iloc[:, :33]
+last_columns = df.iloc[:, -20:]
+
+# Concatenate the selected columns into a new DataFrame
+all_aid = pd.concat([first_33_columns, last_columns], axis=1)
+
+# Select the last row from the original DataFrame
 
 unique_donors = df['donor'].unique()
 
