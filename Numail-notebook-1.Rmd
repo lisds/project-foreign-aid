@@ -469,6 +469,100 @@ JICA_df.describe()
 ```
 
 ```{python}
+df['giz_impact_rating'].notna()
+filtered_df_giz = df[df['giz_impact_rating'].notna()]
+filtered_df_giz
+
+filtered_df_giz[['project_id','giz_impact_rating', 'project_duration', 'countryname_COW', 'six_overall_rating', 'projectsize_original', 'sector_description']].head(50)
+```
+
+```{python}
+giz_impact_df = filtered_df_giz[['project_id','giz_impact_rating', 'project_duration', 'countryname_COW', 'six_overall_rating', 'projectsize_original']]
+giz_impact_df.describe()
+```
+
+```{python}
+giz_impact_df['countryname_COW'].value_counts()
+```
+
+```{python}
+impact_by_country = giz_impact_df.groupby('countryname_COW')['giz_impact_rating'].mean()
+impact_by_country
+```
+
+```{python}
+# Why are these countries low impact?
+low_impact_countries = impact_by_country[impact_by_country < 3].reset_index()
+low_impact_countries
+```
+
+```{python}
+giz_impact_df.head(40)
+```
+
+```{python}
+giz_low_impact_df = giz_impact_df[giz_impact_df['giz_impact_rating'] < 3.0]
+giz_low_impact_df
+```
+
+```{python}
+correlation_giz = giz_impact_df['giz_impact_rating'].corr(giz_impact_df['six_overall_rating'])
+print(f"Correlation between 'giz_impact_rating' and 'six_overall_rating': {correlation_}")
+```
+
+```{python}
+plt.figure()
+plt.scatter(giz_impact_df['six_overall_rating'], giz_impact_df['giz_impact_rating'])
+plt.xlabel('six_overall_rating')
+plt.ylabel('giz_impact_rating')
+plt.title('Impact Rating vs Overall Rating')
+plt.show()
+```
+
+```{python}
+plt.figure()
+plt.scatter(giz_impact_df['project_duration'], giz_impact_df['giz_impact_rating'])
+plt.xlabel('project duration')
+plt.ylabel('giz_impact_rating')
+plt.title('Impact Rating vs Overall Rating')
+plt.show()
+```
+
+```{python}
+plt.figure()
+plt.scatter(giz_impact_df['giz_impact_rating'], giz_impact_df['project_duration'])
+plt.ylabel('project duration')
+plt.xlabel('giz_impact_rating')
+plt.title('Project Duration vs Impact Rating')
+plt.show()
+```
+
+```{python}
+# Strong positive correlation observed between impact rating and overall rating
+
+from scipy.stats import pearsonr
+
+correlation, p_value = pearsonr(giz_impact_df['giz_impact_rating'], giz_impact_df['six_overall_rating'])
+
+print(f"Correlation: {correlation}")
+print(f"P-value: {p_value}")
+```
+
+```{python}
+correlation, p_value = pearsonr(giz_impact_df['giz_impact_rating'], giz_impact_df['projectsize_original'])
+
+print(f"Correlation: {correlation}")
+print(f"P-value: {p_value}")
+```
+
+```{python}
+correlation, p_value = pearsonr(giz_impact_df['giz_impact_rating'], giz_impact_df['project_duration'])
+
+print(f"Correlation: {correlation}")
+print(f"P-value: {p_value}")
+```
+
+```{python}
 DFAT_df.describe()
 ```
 
