@@ -457,3 +457,21 @@ fig.update_layout(
 fig.show()
 
 ```
+
+## Analysis from 14th Dec onwards
+
+```{python}
+AfricanDB_df
+```
+
+```{python}
+JICA_df.describe()
+```
+
+```{python}
+DFAT_df.describe()
+```
+
+```{python}
+WB_df.describe()
+```
