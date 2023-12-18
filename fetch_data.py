@@ -55,7 +55,7 @@ print('Fetch and validation passed')
 
 
 # with ZipFile(dest_path, 'r') as my_zip:
-    
+
 #     csv_filename = 'PPD2_Jan_21_2022.csv'
 
 #     # Check if the CSV file exists in the zip archive
@@ -63,6 +63,12 @@ print('Fetch and validation passed')
 #         # Extract the CSV file to a temporary directory
 #         my_zip.extract(csv_filename, path='temp')
 
+
+        # Read the CSV file using pandas
+        csv_path = Path('temp') / csv_filename
+        df = pd.read_csv(csv_path)
+=======
 #         # Read the CSV file using pandas
 #         csv_path = Path('temp') / csv_filename
 #         df = pd.read_csv(csv_path)
+>>>>>>> main
