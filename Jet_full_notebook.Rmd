@@ -30,7 +30,7 @@ import numpy as np
 #Initial exploration into aid projects by country
 
 #Counts the aid projects by country
-aid_by_country = all_aid['country_code_WB'].value_counts().sort_values(ascending = False).head(50)
+aid_by_country = all_aid['countryname_COW'].value_counts().sort_values(ascending = False).head(50)
 
 #Plots the top 50 countries by receipt of aid
 aid_by_country.plot(kind='bar', figsize=(10, 6))
@@ -105,6 +105,40 @@ plt.legend();
 ```
 
 ```{python}
+#attempt to run classification test
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import classification_report, confusion_matrix
+
+# Drop rows where either 'six_overall_rating' or 'donor' is NaN
+all_aid_cleaned = all_aid.dropna(subset=['six_overall_rating', 'office_presence'])
+
+# Prepare the data
+X = all_aid_cleaned[['six_overall_rating']]  # Predictor
+y = all_aid_cleaned['office_presence']  # Target variable
+
+# Split the data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y)
+
+# Create and train the logistic regression model
+model = LogisticRegression()
+model.fit(X_train, y_train)
+
+# Make predictions on the test set
+y_pred = model.predict(X_test)
+
+# Model evaluation
+classification_report_output = classification_report(y_test, y_pred)
+
+# Generating the confusion matrix
+cm = confusion_matrix(y_test, y_pred)
+
+print(classification_report_output)
+
+```
+
+```{python}
 #Creates a subset of the dataframe to look at purposes
 all_purposes = all_aid[['project_id','donor','six_overall_rating',
                 'countryname_COW', 'country_code_WB', 
@@ -153,7 +187,7 @@ def projects_by_sector_graph(country_name, dataframe):
     plt.show()
     
 #Call the function for 'China'
-projects_by_sector_graph('China', all_sectors)
+projects_by_sector_graph('Russia', all_sectors)
 ```
 
 ```{python}
@@ -195,12 +229,25 @@ plt.show()
 ```
 
 ```{python}
+#How many values for project_duration are negative and why?
+project_size_df[project_size_df['project_duration'] < 0][['completion_date','start_date']]
+
+#How many values for project_duration are between 0 and 10
+project_size_df[(project_size_df['project_duration'] > 0) & (project_size_df['project_duration'] < 180)]
+
+#DF to look at only projects longer than 6 months
+duration_df = project_size_df[project_size_df['project_duration'] > 180]
+
+duration_df
+```
+
+```{python}
 #This plots three variables: Size, Rating, and Duration
 def basic_3D_scatter():
     fig = plt.figure(figsize = (8, 8))
     ax = fig.add_subplot(projection='3d')
     #project size, rating, duration, and x
-    ax.scatter(project_size_df['project_size_USD_calculated'].values, project_size_df['six_overall_rating'].values, project_size_df['duration'].values)
+    ax.scatter(duration_df['project_size_USD_calculated'].values, duration_df['six_overall_rating'].values, duration_df['project_duration'].values)
     ax.set_xlabel('Size (USD)')
     ax.set_ylabel('Project Rating')
     ax.set_zlabel('Duration (Days)')
@@ -217,22 +264,22 @@ def improved_3D_scatter():
     ax = fig.add_subplot(111, projection='3d')
     
     # Scatter plot with increased point size and transparency for better visibility
-    scatter = ax.scatter(project_size_df['project_size_USD_calculated'],
-                         project_size_df['duration'],
-                         project_size_df['six_overall_rating'],
-                         c=project_size_df['six_overall_rating'],  # Color by duration
+    scatter = ax.scatter(duration_df['project_size_USD_calculated'],
+                         duration_df['project_duration'],
+                         duration_df['six_overall_rating'],
+                         c=duration_df['six_overall_rating'],  # Color by duration
                          cmap='viridis',  # Color map
                          edgecolor='k',  # Edge color of the markers
                          s=50,  # Size of the markers
-                         alpha=0.6)  # Transparency of the markers
+                         alpha=0.4)  # Transparency of the markers
     
     # Labels with padding for clarity
     ax.set_xlabel('Size (USD)', labelpad=15)
     ax.set_ylabel('Duration (Days)', labelpad=15)
-    ax.set_zlabel('Duration (Days)', labelpad=15)
+    ax.set_zlabel('Rating', labelpad=15)
     
     # Title with increased font size
-    ax.set_title('3D Scatter Plot of Project Metrics', pad=20)
+    ax.set_title('3D Scatter Plot of Project Metrics', pad=10)
     
     # Adding a color bar to indicate the scale of 'duration'
     cbar = plt.colorbar(scatter, shrink=0.5, aspect=10)
@@ -252,10 +299,10 @@ improved_3D_scatter()
 ```
 
 ```{python}
-formula = 'six_overall_rating ~ project_size_USD_calculated + duration'
+formula = 'project_size_USD_calculated ~ project_duration'
 
 # Fit the model
-multiple_model = smf.ols(formula, data=project_size_df).fit()
+multiple_model = smf.ols(formula, data=duration_df).fit()
 
 # Print out the summary of the regression model
 model_summary = multiple_model.summary()
@@ -263,10 +310,10 @@ model_summary
 ```
 
 ```{python}
-formula = 'project_size_USD_calculated ~ duration'
+formula = 'six_overall_rating ~ project_size_USD_calculated + project_duration'
 
 # Fit the model
-multiple_model = smf.ols(formula, data=project_size_df).fit()
+multiple_model = smf.ols(formula, data=duration_df).fit()
 
 # Print out the summary of the regression model
 model_summary = multiple_model.summary()
@@ -274,6 +321,70 @@ model_summary
 ```
 
 ```{python}
-"""Plot this again with only durations longer than 500 days"""
-plt.scatter(project_size_df['duration'], project_size_df['project_size_USD_calculated'])
+#This scatter only contains values for project_duration longer than 180 days
+plt.scatter(duration_df['project_duration'], duration_df['project_size_USD_calculated'])
+```
+
+```{python}
+### Creates a sub dataframe to look at sectors
+all_sectors = all_aid[['project_id','donor','six_overall_rating',
+                'countryname_COW', 'country_code_WB', 'original_sector', 
+                'sector_description','pseudo_sector']]
+
+#Exploring each country's projects by sector
+def donor_sector_graph(donor, dataframe):
+    """
+    This function takes a country name and a dataframe as input.
+    It returns a horizontal bar chart showing the number of projects completed in that country for each sector.
+
+    Parameters:
+    country_name (str): The name of the country as in countryname_COW
+    dataframe (DataFrame): The original dataframe (like all_aid) containing the country and sector information.
+    """
+    # Filter the dataframe for the given country
+    filtered_df = dataframe[dataframe['donor'] == donor]
+
+    # Group by the sector, count the number of projects, and sort by project count
+    sector_counts_sorted = filtered_df.groupby('sector_description').size().reset_index(name='Project Count').sort_values(by='Project Count', ascending=True)
+
+    # Plot the chart
+    plt.figure(figsize=(8, 8))
+    plt.barh(sector_counts_sorted['sector_description'], sector_counts_sorted['Project Count'], color='skyblue')
+    plt.xlabel('Number of Projects')
+    plt.ylabel('Sector')
+    plt.title(f'Number of Projects by Sector in {donor}')
+    #This code fixes the x-axis to always fit the range of data for a given country
+    max_project_count = int(sector_counts_sorted['Project Count'].max())
+    tick_interval = max(1, max_project_count // 10)
+    plt.xticks(range(0, max_project_count + 1, tick_interval))
+    plt.show()
+    
+#Call the function for 'WB'
+donor_sector_graph('WB', all_sectors)
+```
+
+```{python}
+selected_sectors = ['Agriculture', 'Transport & Storage', 'Energy', 'Water Supply & Sanitation', 'Government & Civil Society-general', 'Other Multisector']
+filtered_sectors_df = all_sectors[all_sectors['sector_description'].isin(selected_sectors)]
+
+# Group the data by donor and the selected sectors, and count the projects
+grouped_sectors = filtered_sectors_df.groupby(['donor', 'sector_description']).size().unstack(fill_value=0).sort_values(by = 'donor', ascending = False)
+
+# Plot the stacked bar chart for the selected sectors
+grouped_sectors.plot(kind='bar', stacked=True, figsize=(10, 6))
+
+# Customize the plot
+plt.xlabel('Donor')
+plt.ylabel('Number of Projects')
+plt.title('Number of Projects by Donor and Selected Sectors')
+plt.xticks(rotation=45)
+plt.legend(title='Sector Description')
+
+# Show the plot
+plt.tight_layout()  # Adjust layout to fit labels
+plt.show()
+```
+
+```{python}
+
 ```
