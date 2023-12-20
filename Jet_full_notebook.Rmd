@@ -7,7 +7,7 @@ jupyter:
       format_version: '1.2'
       jupytext_version: 1.15.2
   kernelspec:
-    display_name: Python 3
+    display_name: Python 3 (ipykernel)
     language: python
     name: python3
 ---
@@ -189,6 +189,59 @@ def projects_by_sector_graph(country_name, dataframe):
 #Call the function for 'China'
 projects_by_sector_graph('Russia', all_sectors)
 ```
+
+## Russia 
+
+
+The graph delineates the distribution of development projects across various sectors in Russia. The sectors of 'General Environment Protection' and 'Government & Civil Society' are the most prominent, indicating a significant focus on environmental initiatives and the strengthening of governmental structures and societal institutions. Conversely, sectors like 'Agriculture' and 'Trade Policies & Regulations' register the fewest projects, suggesting these areas are currently less prioritized within the scope of development strategies or possibly that they are relatively well-established and require less external developmental assistance. The graph reflects strategic decisions on where to allocate resources and efforts to drive development in Russia.
+
+This is interesting as the data pre-dates the conflict in Ukraine, and therefore highlights a trend towards investment in this sector (Barabashev and Klimenko, 2023). 
+
+
+## Morocco
+
+```{python}
+projects_by_sector_graph('Morocco', all_sectors)
+```
+
+The analysis of the graph for Morocco's development projects by sector reveals a prioritized focus on agriculture and water supply and sanitation. This prioritization is corroborated by recent financing initiatives, including a US //180 million loan from the World Bank (2022a) to bolster resilient and sustainable agriculture, addressing the dual pressures of climate change and population growth on Morocco's land and water resources​​. Further supporting the water sector, the World Bank has also approved a substantial US $350 million program to assist Morocco in implementing its National Program for Potable Water Supply and Irrigation, part of a long-term National Water Plan​. 
+
+Additionally, in response to escalating drought conditions, Morocco has initiated an emergency program, allocating approximately €940 million for water supply projects, reflecting the government's commitment to improving water access amid environmental challenges (World Bank, 2022b). The African Development Bank (AfDB) has also recognized the critical need for water security in Morocco, approving a $79 million USD financing package aimed at enhancing water production and treatment facilities throughout the country (Magoum, 2022). 
+
+These substantial investments and initiatives in the agriculture and water sectors underscore the graph's indication that these areas are of high priority. They also reflect a strategic alignment with Morocco's developmental and environmental sustainability goals, suggesting a concerted effort to address the essential needs of the population while contending with the broader challenges posed by natural resource scarcity. This is similar to Mexico and India, but very different to Russia. This also validates our function, and the data in the PPD database, as it shows investment is inline with qualitative research on the country and its investments. 
+
+
+
+## India
+
+```{python}
+projects_by_sector_graph('India', all_sectors)
+```
+
+The graph depicting the distribution of development projects by sector in India shows a predominant focus on Agriculture, which aligns with the sector's significant contribution to the nation's GDP and its substantial employment footprint. This focus is essential as agriculture is a central pillar of the Indian economy, employing 60 percent of the nation's workforce and contributing about 17 percent of its GDP, but it faces challenges in productivity, poverty, and malnutrition in rural areas (Dubashi et al., 2023). 
+
+The notable emphasis on Energy and Transport & Storage in the graph could be reflective of India’s infrastructure development initiatives, which are crucial for supporting its expanding economy and augmenting agricultural productivity. Meanwhile, the investment in the Industry sector, which appears to have a moderate number of projects, may signify efforts to diversify the economy and reduce the overdependence on agriculture.
+
+The graph depicting India's sectoral allocation of development projects reveals a curious insight into the country's education sector. Despite being a cornerstone for long-term socio-economic progress, the education sector seems to underrepresent in terms of the number of projects. This observation becomes particularly intriguing when contrasted with the anomalies identified in the dataset—two mammoth-sized projects in the education sector, valued at an astounding \\$12 billion and \\$29 billion, respectively (see Anomalies section). 
+
+Such enormous investments are indicative of significant economic interventions. This discrepancy between the number of projects and the scale of investment might suggest a focus on quality over quantity, with fewer but more substantial, high-impact initiatives designed to create systemic change. It also raises questions about the distribution and efficacy of these high-value projects and whether they align with countries broader goals.
+
+
+## Mexico
+
+```{python}
+projects_by_sector_graph('Mexico', all_sectors)
+```
+
+The bar graph provides a detailed breakdown of the number of development projects by sector in Mexico. Agriculture leads significantly, indicating a strong emphasis on developing this traditional cornerstone of the Mexican economy. Meanwhile, sectors related to infrastructure, such as 'Transport & Storage', and 'Water Supply & Sanitation', also receive substantial attention, suggesting a focus on bolstering the foundational elements that underpin economic growth and public health. Notably, less represented are sectors like 'Tourism' and 'Fishing', which may imply a current strategic shift or perhaps a maturity that requires less developmental intervention. The graph offers a visual representation of Mexico's developmental priorities, with a clear tilt towards agriculture, infrastructure, and basic public services.
+
+Again, similarly to India, as this is showing the number of projects it does not illustrate how much has been invested into each sector. Understanding how much has been invested into each sector will help to explain the US$26 billion spent on the MX Social Protection in Health Project which appeared in out Anomalies section. 
+
+
+## Summary 
+In this section we can see which sectors have the most most projects for each country. Though there are slight variations between Morocco, Mexico and India, they all have the most projects in the agricultrual sector. In our Anomalies section we see that the both Mexico and India have aid of over USD$20 billion in sectors which have far fewer projects. We speculate that these much larger investments are attributed to the centralised aspect of the investment, for instance, India's investments of over $42 billion (SSA III ($29 bil) & Secondary Education Program ($12bil)) is in the Education sector which is centrally managed by the Government, whereas perhaps agricultural projects are more plentiful because they are less concentrated. This can also be seen in Mexico's MX Social Protection in Health project. 
+
+Another thing to consider is donor investment preferences in different regions, for instance, in Russia we see donors investing heavily in 'General Environment Protection' and 'Government and Civil Society', which strongly contrasts with heavy investment in agricultural projects for Morocco, India and Mexico. This is also inline with differing development levels for each country and their developmental priorities. 
 
 ```{python}
 #This will look at multiple linear regression to predict rating from project duration and project size
