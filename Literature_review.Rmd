@@ -29,3 +29,12 @@ Hugeset al. 's (2005) work on the intricate dynamics that exist between rights, 
 
 This literature review synthesises a range of academic perspectives on the complexities of foreign aid and its impact on global development. It emphasises the importance of critical analysis on impact and consideration of the factors influencing success, including geography. It also considers the broader socio-political implications and power dynamics in recipient countries. This has helped us to develop a selection of exploratory questions which have laid the groundwork for our data analysis. 
 
+
+
+## Exploratory Questions <br>
+The exploratory questions derived from the literature review serve as a compass for our report: <br>
+What patterns emerge regarding the amount of aid projects across different regions and time periods? <br>
+Are there significant regional variations in the project ratings of development projects, and what factors contribute to these differences? <br>
+What are the trends in higher project ratings and what affects them? (Office Presence? donor ? Sector? Duration? etc.) <br>
+Is there variation in where and what sectors donors invest in? 
+
