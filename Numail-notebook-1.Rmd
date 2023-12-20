@@ -304,6 +304,18 @@ x_time_plot(all_aid, 'startyear', 'countryname_COW', 'Tanzania')
 ```
 
 ```{python}
+x_time_plot(all_aid, 'startyear', 'countryname_COW', 'Morocco')
+```
+
+```{python}
+x_time_plot(all_aid, 'startyear', 'countryname_COW', 'India')
+```
+
+```{python}
+x_time_plot(all_aid, 'startyear', 'countryname_COW', 'Mexico')
+```
+
+```{python}
 all_aid['donor'].value_counts(dropna = False)
 ```
 
@@ -340,6 +352,50 @@ plt.xlabel('Donor')
 plt.ylabel('Project Size (USD)')
 plt.show()
 
+```
+
+# Anomalies
+
+
+The "Project Size Distribution by Donor" graph revealed notable outliers, particularly in the scale of projects managed by the World Bank (WB). To understand the nature and implications of these anomalies, we zoomed in on projects exceeding $10 billion. We conducted a detailed investigation of these large-scale initiatives, combining quantitative data analysis with qualitative research. This allowed us to trace the flow of these substantial investments and comprehend their broader impact. The combined approach helped us identify the specific sectors and regions these projects targeted and evaluate their alignment with strategic development goals and policy priorities.
+
+```{python}
+WB_big_spenders = project_size_df[project_size_df['project_size_USD_calculated'] > 10000000000]
+
+WB_big_spenders
+```
+
+In our analysis of the PPD data, we focused on projects with a size exceeding 10 billion USD and found four such projects. 
+
+
+Next we looked at these more granularly and found there was some uncertainty from some of the values. For China's Guizhou-Guangzhou Railway Project, we found evidence that the stated project funds did match up with it actual project funds (Xinhua News (2008), this was also true of the Secondary Education Program project in India (World Bank, 2012), for the other two, there is less evidence, particularly for Mexico's MX Social Protection in Health and SSA III (World Bank, 2014). This is worth further investigation and clarification. The granular investigations for each project are shown below. 
+
+```{python}
+#The Mexico project was $26bil!
+row_index = 17082
+Mexico_project = WB_big_spenders.loc[row_index]
+Mexico_project
+```
+
+```{python}
+ # The first India project was 5 years long (2012-2017) and cost $12billion. 
+row_index = 15539
+India_1_project = WB_big_spenders.loc[row_index]
+India_1_project
+```
+
+```{python}
+#The second India project cost $29bil (almost $30bil), took place between 2014 and 2018.It was for an unspecified education initiative labeled 'SSA III'
+row_index = 15542
+India_2_project = WB_big_spenders.loc[row_index]
+India_2_project
+```
+
+```{python}
+#$12bil from the world bank to China over 2009-2016 for the CN-Guizhou-Guangzhou Railway
+row_index = 12903
+China_project = WB_big_spenders.loc[row_index]
+China_project
 ```
 
 ```{python}
