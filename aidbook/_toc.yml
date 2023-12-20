@@ -1,0 +1,22 @@
+# Table of contents
+# Learn more at https://jupyterbook.org/customize/toc.html
+
+format: jb-book
+root: intro
+parts:
+  - caption: Introduction
+    chapters:
+    - file: Intro_text.ipynb
+      title: About Foreign Aid
+    - file: Literature_review.ipynb
+      title: Literature Review
+  - caption: Analysis
+    chapters:
+    - file: Overview.ipynb
+      title: Overview
+    - file: Office_presence.ipynb
+      title: Office Presence
+    - file: analysis-numail.ipynb
+      title: Numail Analysis
+    - file: analysis-jet.ipynb
+      title: Jet Analysis
