@@ -15,11 +15,19 @@ jupyter:
 # Jet notebook
 
 ```{python}
+
+# %run fetch_data.py
+```
+
+```{python}
+# %run opening_zip_cleaning.py
+
 run fetch_data
 ```
 
 ```{python}
 run opening_zip_cleaning.py
+
 ```
 
 ```{python}
@@ -108,7 +116,10 @@ plt.legend();
 
 ```{python}
 #attempt to run classification test
+
+
 import pandas as pd
+
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import classification_report, confusion_matrix
@@ -387,6 +398,7 @@ plt.tight_layout()  # Adjust layout to fit labels
 plt.show()
 ```
 
+
 # Impact Analysis
 
 
@@ -486,3 +498,4 @@ correlation2, p_value2 = pearsonr(giz_impact_df['giz_impact_rating'], giz_impact
 print(f"Correlation: {correlation2}")
 print(f"P-value: {p_value2}")
 ```
+

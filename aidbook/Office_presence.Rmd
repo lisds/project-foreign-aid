@@ -76,6 +76,8 @@ plt.plot(['no', 'yes'], [no_mean,yes_mean],
 plt.legend();
 ```
 
+Disappointingly, there is not a very large difference in the mean of the two categories. This does not warrant much further analysis as both categories, despite differing amounts of data points, seem to have a similar average rating.
+
 ```{python}
 #attempt to run classification test
 from sklearn.model_selection import train_test_split
@@ -107,3 +109,5 @@ cm = confusion_matrix(y_test, y_pred)
 
 print(classification_report_output)
 ```
+
+Unfortunately, the prediction model is not accurate. Only 78% accuracy, but due to the disparity in number of data points for each category - far fewer 'no' than 'yes'- this value is likely skewed. The model is learning to always interpret a value as a 'yes' simply because there are many more of that category in the entire data set.
