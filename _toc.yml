@@ -3,7 +3,18 @@
 
 format: jb-book
 root: intro
-chapters:
-- file: markdown
-- file: notebooks
-- file: markdown-notebooks
+parts:
+  - caption: Introduction
+    chapters:
+    - file: Intro_text.ipynb
+      title: Introduction
+    - file: Literature_review.ipynb
+      title: Literature Review
+  - caption: Analysis
+    chapters:
+    - file: Numail-notebook-1.ipynb
+      title: Notebook A
+    - file: Jet_full_notebook.ipynb
+      title: Notebook B
+    - file: Discussion.ipynb
+      title: Discussion
