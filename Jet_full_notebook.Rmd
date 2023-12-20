@@ -12,7 +12,7 @@ jupyter:
     name: python3
 ---
 
-# Jet notebook
+# Notebook B
 
 ```{python}
 
@@ -71,6 +71,13 @@ plt.show()
     #aid_over_time
 ```
 
+## Office presence
+
+
+Here we will dive deeper into understanding the relationship between the aid project rating and whether or not there was an office of the donor entity in the country where the project took place
+
+The rationale behind looking at this aspect of the data is that we believe there is potential for a bias towards higher ratings if the donor has a presence in the country in which the project was active. These projects feed in to the overall reputation and credibility of the donors, and since it is the donor themself who rates the project, it is possible that we would see higher ratings out of six where offices were present.
+
 ```{python}
 #This code explores the relationship between rating out of 6 and office presence
 
@@ -114,6 +121,8 @@ plt.plot(['no', 'yes'], [no_mean,yes_mean],
 plt.legend();
 ```
 
+Disappointingly, there is not a very large difference in the mean of the two categories. This does not warrant much further analysis as both categories, despite differing amounts of data points, seem to have a similar average rating.
+
 ```{python}
 #attempt to run classification test
 
@@ -151,6 +160,8 @@ print(classification_report_output)
 
 ```
 
+Unfortunately, the prediction model is not accurate. Only 78% accuracy, but due to the disparity in number of data points for each category - far fewer 'no' than 'yes'- this value is likely skewed. The model is learning to always interpret a value as a 'yes' simply because there are many more of that category in the entire data set.
+
 ```{python}
 #Creates a subset of the dataframe to look at purposes
 all_purposes = all_aid[['project_id','donor','six_overall_rating',
@@ -164,6 +175,8 @@ df_purposes_notna = all_purposes[purposes_notna_series]
 nr_projects_by_purpose = pd.DataFrame({'Purpose':df_purposes_notna['aiddata_purposename'].value_counts().index, 'Number of Projects':df_purposes_notna['aiddata_purposename'].value_counts().values})
 nr_projects_by_purpose.set_index('Purpose').head(20)
 ```
+
+Here we have created a function that examines a specific country's aid projects by sector. This is valuable to know because various countries have disparate growth areas which aid projects target. Revealing which sectors are most invested in by the donors can give insight into both a country's long-term growth strategy and also where donors perceive is the most pressing sector to invest in. In the case of Russia, for example, general environmental protection is the leading sector for investment. This is contrasted by other countries in different locations such as Uganda, which has its own unique set of needs. As Uganda is less developed socially and infrastructurally, their priorties are government and transportation sectors.
 
 ```{python}
 #Creates a sub dataframe to look at sectors
@@ -252,9 +265,18 @@ Again, similarly to India, as this is showing the number of projects it does not
 
 
 ## Summary 
-In this section we can see which sectors have the most most projects for each country. Though there are slight variations between Morocco, Mexico and India, they all have the most projects in the agricultrual sector. In our Anomalies section we see that the both Mexico and India have aid of over USD$20 billion in sectors which have far fewer projects. We speculate that these much larger investments are attributed to the centralised aspect of the investment, for instance, India's investments of over $42 billion (SSA III ($29 bil) & Secondary Education Program ($12bil)) is in the Education sector which is centrally managed by the Government, whereas perhaps agricultural projects are more plentiful because they are less concentrated. This can also be seen in Mexico's MX Social Protection in Health project. 
+In this section we can see which sectors have the most most projects for each country. Though there are slight variations between Morocco, Mexico and India, they all have the most projects in the agricultrual sector. In our Anomalies section we see that the both Mexico and India have aid of over USD 20 billion in sectors which have far fewer projects. We speculate that these much larger investments are attributed to the centralised aspect of the investment, for instance, India's investments of over USD 42 billion (SSA III (29 bil) & Secondary Education Program ($12bil)) is in the Education sector which is centrally managed by the Government, whereas perhaps agricultural projects are more plentiful because they are less concentrated. This can also be seen in Mexico's MX Social Protection in Health project. 
 
 Another thing to consider is donor investment preferences in different regions, for instance, in Russia we see donors investing heavily in 'General Environment Protection' and 'Government and Civil Society', which strongly contrasts with heavy investment in agricultural projects for Morocco, India and Mexico. This is also inline with differing development levels for each country and their developmental priorities. 
+
+
+## Regression Analysis
+
+
+Below we perform our regression analyses,
+
+
+The original dataset presents the size of projects in local currency depending on the donor, so we have created a function that standardizes the currency to USD.
 
 ```{python}
 #This will look at multiple linear regression to predict rating from project duration and project size
