@@ -1,0 +1,182 @@
+---
+jupyter:
+  jupytext:
+    text_representation:
+      extension: .Rmd
+      format_name: rmarkdown
+      format_version: '1.2'
+      jupytext_version: 1.15.2
+  kernelspec:
+    display_name: Python 3
+    language: python
+    name: python3
+---
+
+```{python}
+import pandas as pd
+import networkx as nx
+import plotly.graph_objects as go
+import matplotlib.pyplot as plt
+
+# Create a directed graph
+G = nx.DiGraph()
+
+# Add edges (donor to recipient) based on aid data
+edges = AfricanDB_df[['donor', 'countryname_COW']].dropna().values
+G.add_edges_from(edges)
+
+# Calculate total aid amount received by each country
+total_aid_per_country = df.groupby('countryname_COW')['afdb_projectamount_usd'].sum()
+
+# Filter out values less than or equal to 0
+total_aid_per_country = total_aid_per_country[total_aid_per_country > 0]
+
+# Print or inspect total_aid_per_country
+print(total_aid_per_country)
+
+# Set node positions 
+pos = nx.spring_layout(G)
+
+# Print or inspect pos
+print(pos)
+
+# Draw the graph with node sizes based on aid amount
+plt.figure(figsize=(12, 8))
+nx.draw(G, pos, with_labels=True, node_size=[total_aid_per_country.get(country, 1) for country in G.nodes], node_color='skyblue', font_size=8, font_color='black', font_weight='bold', edge_color='gray', linewidths=0.5, arrowsize=10)
+plt.title('Aid Inflow Diagram with Node Size based on Aid Amount (Amount > 0)')
+plt.show()
+
+```
+
+```{python}
+pip install plotly==5.18.0
+```
+
+```{python}
+run fetch_data
+```
+
+```{python}
+run opening_zip_cleaning
+```
+
+```{python}
+
+# Calculate the total project amount received by each country
+total_amount_per_country = AfricanDB_df.groupby('countryname_COW')['afdb_projectamount_usd'].sum()
+
+# Create a Sankey diagram
+fig = go.Figure(data=[go.Sankey(
+    node=dict(
+        pad=15,
+        thickness=20,
+        line=dict(color='black', width=0.5),
+        label=df['countryname_COW'].unique().tolist() + AfricanDB_df['donor'].unique().tolist()
+    ),
+    link=dict(
+        source=df['donor'].apply(lambda x: AfricanDB_df['countryname_COW'].nunique() + AfricanDB_df['donor'].nunique() + list(AfricanDB_df['donor'].unique()).index(x)),
+        target=df['countryname_COW'].apply(lambda x: list(df['countryname_COW'].unique()).index(x) if x in df['countryname_COW'].unique() else -1),
+        value=df['afdb_projectamount_usd']
+    )
+)])
+
+# Update layout and show the Sankey diagram
+fig.update_layout(title_text="Sankey Diagram of Project Amounts",
+                  font_size=10,
+                  hovermode='x',
+                  xaxis=dict(showgrid=False, zeroline=False),
+                  yaxis=dict(showgrid=False, zeroline=False),
+                  margin=dict(l=0, r=0, b=0, t=40))
+
+fig.show()
+
+```
+
+```{python}
+# Calculate the total project amount received by each country
+total_amount_per_country = df.groupby('countryname_COW')['afdb_projectamount_usd'].sum()
+
+# Select the top 10 receiving countries
+top_10_countries = total_amount_per_country.nlargest(10).index
+
+# Filter the DataFrame to include only the top 10 receiving countries
+df_top_10 = df[df['countryname_COW'].isin(top_10_countries)]
+
+# Create a Sankey diagram with colored arrows based on the donor
+fig = go.Figure(data=[go.Sankey(
+    node=dict(
+        pad=15,
+        thickness=20,
+        line=dict(color='black', width=0.5),
+        label=df_top_10['countryname_COW'].unique().tolist() + df_top_10['donor'].unique().tolist()
+    ),
+    link=dict(
+        source=df_top_10['donor'].apply(lambda x: df_top_10['countryname_COW'].nunique() + df_top_10['donor'].nunique() + list(df_top_10['donor'].unique()).index(x)),
+        target=df_top_10['countryname_COW'].apply(lambda x: list(df_top_10['countryname_COW'].unique()).index(x) if x in df_top_10['countryname_COW'].unique() else -1),
+        value=df_top_10['afdb_projectamount_usd'],
+        color=df_top_10['donor'].apply(lambda x: 'blue' if x == 'Morocco' else 'green' if x == 'Tunisia' else 'red')  # Adjust colors based on the donor
+    )
+)])
+
+# Update layout and show the Sankey diagram
+fig.update_layout(title_text="Sankey Diagram of Top 10 Receiving Countries",
+                  font_size=10,
+                  hovermode='x',
+                  xaxis=dict(showgrid=False, zeroline=False),
+                  yaxis=dict(showgrid=False, zeroline=False),
+                  margin=dict(l=0, r=0, b=0, t=40))
+
+fig.show()
+
+```
+
+```{python}
+import pandas as pd
+import plotly.graph_objects as go
+
+# Assuming df is your DataFrame with columns 'donor', 'countryname_COW', and 'afdb_projectamount_usd'
+# You may need to adjust column names based on your actual DataFrame
+
+# Calculate the total project amount received by each country
+total_amount_per_country = df.groupby('countryname_COW')['afdb_projectamount_usd'].sum()
+
+# Select the top 20 receiving countries
+top_20_countries = total_amount_per_country.nlargest(20).index
+
+# Filter the DataFrame to include only the top 20 receiving countries
+df_top_20 = df[df['countryname_COW'].isin(top_20_countries)]
+
+# Create a color scale based on unique country names
+color_scale = {country: f'rgb({i*20}, {i*10}, {i*15})' for i, country in enumerate(df_top_20['countryname_COW'].unique())}
+
+# Create a Sankey diagram with different colors for each country
+fig = go.Figure(data=[go.Sankey(
+    node=dict(
+        pad=15,
+        thickness=20,
+        line=dict(color='black', width=0.5),
+        label=df_top_20['countryname_COW'].unique().tolist() + df_top_20['donor'].unique().tolist(),
+        color=[color_scale[country] for country in df_top_20['countryname_COW'].unique()]
+    ),
+    link=dict(
+        source=df_top_20['donor'].apply(lambda x: df_top_20['countryname_COW'].nunique() + df_top_20['donor'].nunique() + list(df_top_20['donor'].unique()).index(x)),
+        target=df_top_20['countryname_COW'].apply(lambda x: list(df_top_20['countryname_COW'].unique()).index(x) if x in df_top_20['countryname_COW'].unique() else -1),
+        value=df_top_20['afdb_projectamount_usd']
+    )
+)])
+
+# Update layout and show the Sankey diagram
+fig.update_layout(title_text="Sankey Diagram of Top 20 Receiving Countries",
+                  font_size=10,
+                  hovermode='x',
+                  xaxis=dict(showgrid=False, zeroline=False),
+                  yaxis=dict(showgrid=False, zeroline=False),
+                  margin=dict(l=0, r=0, b=0, t=40))
+
+fig.show()
+
+```
+
+```{python}
+
+```

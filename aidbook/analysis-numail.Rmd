@@ -12,17 +12,19 @@ jupyter:
     name: python3
 ---
 
+# Numail Analysis
+
 ```{python}
 import pandas as pd
 import matplotlib.pyplot as plt
 ```
 
 ```{python}
-run fetch_data.py
+# %run fetch_data.py
 ```
 
 ```{python}
-run opening_zip_cleaning.py
+# %run opening_zip_cleaning.py
 ```
 
 ```{python}
