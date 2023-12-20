@@ -17,7 +17,7 @@ python3 fetch_data.py
 To build the book, run:
 
 ```
-jupyter-book build .
+jupyter-book build
 ```
 
 The book build appears in the `_build/html` directory.  You can open it with your browser.
