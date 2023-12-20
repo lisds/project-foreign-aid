@@ -316,6 +316,8 @@ plt.grid(True)
 plt.show()
 ```
 
+Here we have created a linear regression to see if we can predict project rating from project size. Logically we would expect larger projects to have higher ratings because more resources were expended to improve the quality of the output. However, the results were disappointing, as the b value showed only a very small positive relationship, while the r^2 value is 0, which means that it is not a good predictor of the rating.
+
 ```{python}
 #How many values for project_duration are negative and why?
 project_size_df[project_size_df['project_duration'] < 0][['completion_date','start_date']]
@@ -386,6 +388,14 @@ improved_3D_scatter()
 
 ```
 
+Here we are visualizing the relationship between three variables: project size in USD (Size [USD]), project duration in days (Duration [Days]), and a project rating on a scale from 1 to 6 (Rating). The x-axis represents the project size on a logarithmic scale, as indicated by the notation "1e10", with a range up to 10 billion USD or more. The y-axis represents project duration, and the z-axis represents the project rating.
+
+The points in the scatter plot are color-coded according to the project rating, with this color scheme provided in the legend on the right side of the graph. Warmer colors (yellow) represent higher ratings, while cooler colors (purple) represent lower ratings.
+
+From the distribution of the points, we can observe that there isn't a clear, singular trend between the size and duration of the projects with the ratings. However there appears to be some clustering of points, with denser areas of the graph suggesting common project sizes and durations. For instance, a high concentration of projects in the mid-range size (approximately 0.5 to 1.5 on the x-axis) seem to have a broad range of durations but generally receive mid to high ratings (3 to 5). There are outliers, of course, which deviate from these clusters.
+
+The nature of the plot suggests that while there might be a relationship between the size and duration of a project and its rating, the relationship is not simple and likely influenced by other factors. There's also a hint that larger and longer projects do not necessarily correlate with higher ratings, as seen by the spread of colors across all sizes and durations.
+
 ```{python}
 formula = 'project_size_USD_calculated ~ project_duration'
 
@@ -397,6 +407,8 @@ model_summary = multiple_model.summary()
 model_summary
 ```
 
+Here we aim to see if project duration, for projects lasting longer than 6 months can predict the rating.Again, the r^2 value is zero, which suggests not a good fit. This could be an issue with the model fitting the data, or poor data quality. It is rather unusual that the r^2 is 0, so this would warrent further analysis.
+
 ```{python}
 formula = 'six_overall_rating ~ project_size_USD_calculated + project_duration'
 
@@ -407,6 +419,8 @@ multiple_model = smf.ols(formula, data=duration_df).fit()
 model_summary = multiple_model.summary()
 model_summary
 ```
+
+We have performed another linear regression, this time with multiple predictors to see if both project size and duration together have a different impact on rating.
 
 ```{python}
 #This scatter only contains values for project_duration longer than 180 days
