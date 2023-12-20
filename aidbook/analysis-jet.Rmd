@@ -1,0 +1,237 @@
+---
+jupyter:
+  jupytext:
+    text_representation:
+      extension: .Rmd
+      format_name: rmarkdown
+      format_version: '1.2'
+      jupytext_version: 1.15.2
+  kernelspec:
+    display_name: Python 3
+    language: python
+    name: python3
+---
+
+# Jet's Notebook
+
+```{python}
+import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
+```
+
+```{python}
+# %run fetch_data.py
+```
+
+```{python}
+# %run opening_zip_cleaning.py
+```
+
+```{python}
+#Creates a sub dataframe to look at sectors
+all_sectors = all_aid[['project_id','donor','six_overall_rating',
+                'countryname_COW', 'country_code_WB', 'original_sector', 
+                'sector_description','pseudo_sector']]
+
+#Exploring each country's projects by sector
+def projects_by_sector_graph(country_name, dataframe):
+    """
+    This function takes a country name and a dataframe as input.
+    It returns a horizontal bar chart showing the number of projects completed in that country for each sector.
+
+    Parameters:
+    country_name (str): The name of the country as in countryname_COW
+    dataframe (DataFrame): The original dataframe (like all_aid) containing the country and sector information.
+    """
+    # Filter the dataframe for the given country
+    filtered_df = dataframe[dataframe['countryname_COW'] == country_name]
+
+    # Group by the sector, count the number of projects, and sort by project count
+    sector_counts_sorted = filtered_df.groupby('sector_description').size().reset_index(name='Project Count').sort_values(by='Project Count', ascending=True)
+
+    # Plot the chart
+    plt.figure(figsize=(8, 8))
+    plt.barh(sector_counts_sorted['sector_description'], sector_counts_sorted['Project Count'], color='skyblue')
+    plt.xlabel('Number of Projects')
+    plt.ylabel('Sector')
+    plt.title(f'Number of Projects by Sector in {country_name}')
+    #This code fixes the x-axis to always fit the range of data for a given country
+    max_project_count = int(sector_counts_sorted['Project Count'].max())
+    tick_interval = max(1, max_project_count // 10)
+    plt.xticks(range(0, max_project_count + 1, tick_interval))
+    plt.show()
+    
+#Call the function for 'China'
+projects_by_sector_graph('Russia', all_sectors)
+```
+
+```{python}
+#This will look at multiple linear regression to predict rating from project duration and project size
+project_size_df = all_aid.dropna(subset=['projectsize_original']).copy()
+
+def convert_to_usd(row):
+    donor = row['donor']
+    amount = row['projectsize_original']
+    rates = {'AfricanDB': 1, 'AsianDB': 1_000_000, 'DFID': 1.35, 'GEF': 1_000_000, 'GFATM': 1, 'GiZ': 1_200,
+             'IFAD': 1_000_000, 'JICA': 10_687, 'KfW': 1.2, 'WB': 1}
+    return rates[donor] * amount
+
+# Apply the modified function to create a new column
+project_size_df['project_size_USD_calculated'] = project_size_df.apply(convert_to_usd, axis=1)
+```
+
+```{python}
+# Perform linear regression using statsmodels
+import statsmodels.formula.api as smf
+model = smf.ols('six_overall_rating ~ project_size_USD_calculated', data=project_size_df)
+results = model.fit()
+
+# Print out the summary of the regression
+print(results.summary())
+
+project_size_df['predicted_rating'] = results.fittedvalues
+
+# Plotting
+plt.figure(figsize=(10, 6))
+plt.scatter(project_size_df['project_size_USD_calculated'].values, project_size_df['six_overall_rating'].values, alpha=0.5, label='Actual Values')
+plt.plot(project_size_df['project_size_USD_calculated'].values, project_size_df['predicted_rating'].values, color='red', label='Regression Line')
+plt.title('Linear Regression: Project Size (USD) vs Project Rating \n b = 1.976e-11 \n c = 4.235')
+plt.xlabel('Project Size (USD)')
+plt.ylabel('Project Rating')
+plt.legend()
+plt.grid(True)
+plt.show()
+```
+
+```{python}
+#Makes a DF to look at only projects longer than 6 months
+duration_df = project_size_df[project_size_df['project_duration'] > 180]
+
+#This scatter only contains values for project_duration longer than 180 days
+plt.scatter(duration_df['project_duration'], duration_df['project_size_USD_calculated'])
+```
+
+```{python}
+# Making the 3D scatterplot function
+def improved_3D_scatter():
+    fig = plt.figure(figsize=(10, 8))
+    ax = fig.add_subplot(111, projection='3d')
+    
+    # Scatter plot with increased point size and transparency for better visibility
+    scatter = ax.scatter(duration_df['project_size_USD_calculated'],
+                         duration_df['project_duration'],
+                         duration_df['six_overall_rating'],
+                         c=duration_df['six_overall_rating'],  # Color by duration
+                         cmap='viridis',  # Color map
+                         edgecolor='k',  # Edge color of the markers
+                         s=50,  # Size of the markers
+                         alpha=0.4)  # Transparency of the markers
+    
+    # Labels with padding for clarity
+    ax.set_xlabel('Size (USD)', labelpad=15)
+    ax.set_ylabel('Duration (Days)', labelpad=15)
+    ax.set_zlabel('Rating', labelpad=15)
+    
+    # Title with increased font size
+    ax.set_title('3D Scatter Plot of Project Metrics', pad=10)
+    
+    # Adding a color bar to indicate the scale of 'duration'
+    cbar = plt.colorbar(scatter, shrink=0.5, aspect=10)
+    cbar.set_label('Rating')
+    
+    # Customizing the grid and pane colors for better aesthetics
+    ax.xaxis.pane.fill = False
+    ax.yaxis.pane.fill = False
+    ax.zaxis.pane.fill = False
+    ax.grid(False)
+    
+    plt.show()
+
+# Call the improved scatterplot function
+improved_3D_scatter()
+```
+
+```{python}
+#Formula using project duration as a predictor
+formula = 'project_size_USD_calculated ~ project_duration'
+
+# Fit the model
+multiple_model = smf.ols(formula, data=duration_df).fit()
+
+# Summary of the regression model
+model_summary = multiple_model.summary()
+model_summary
+```
+
+```{python}
+#Formula for multiple regresion using size and duration as predictors
+formula = 'six_overall_rating ~ project_size_USD_calculated + project_duration'
+
+# Fit the model
+multiple_model = smf.ols(formula, data=duration_df).fit()
+
+# Print out the summary of the regression model
+model_summary = multiple_model.summary()
+model_summary
+```
+
+```{python}
+### Creates a sub dataframe to look at sectors
+all_sectors = all_aid[['project_id','donor','six_overall_rating',
+                'countryname_COW', 'country_code_WB', 'original_sector', 
+                'sector_description','pseudo_sector']]
+
+#Exploring each country's projects by sector
+def donor_sector_graph(donor, dataframe):
+    """
+    This function takes a country name and a dataframe as input.
+    It returns a horizontal bar chart showing the number of projects completed in that country for each sector.
+
+    Parameters:
+    country_name (str): The name of the country as in countryname_COW
+    dataframe (DataFrame): The original dataframe (like all_aid) containing the country and sector information.
+    """
+    # Filter the dataframe for the given country
+    filtered_df = dataframe[dataframe['donor'] == donor]
+
+    # Group by the sector, count the number of projects, and sort by project count
+    sector_counts_sorted = filtered_df.groupby('sector_description').size().reset_index(name='Project Count').sort_values(by='Project Count', ascending=True)
+
+    # Plot the chart
+    plt.figure(figsize=(8, 8))
+    plt.barh(sector_counts_sorted['sector_description'], sector_counts_sorted['Project Count'], color='skyblue')
+    plt.xlabel('Number of Projects')
+    plt.ylabel('Sector')
+    plt.title(f'Number of Projects by Sector in {donor}')
+    #This code fixes the x-axis to always fit the range of data for a given country
+    max_project_count = int(sector_counts_sorted['Project Count'].max())
+    tick_interval = max(1, max_project_count // 10)
+    plt.xticks(range(0, max_project_count + 1, tick_interval))
+    plt.show()
+    
+#Call the function for 'WB'
+donor_sector_graph('WB', all_sectors)
+```
+
+```{python}
+selected_sectors = ['Agriculture', 'Transport & Storage', 'Energy', 'Water Supply & Sanitation', 'Government & Civil Society-general', 'Other Multisector']
+filtered_sectors_df = all_sectors[all_sectors['sector_description'].isin(selected_sectors)]
+
+# Group the data by donor and the selected sectors, and count the projects
+grouped_sectors = filtered_sectors_df.groupby(['donor', 'sector_description']).size().unstack(fill_value=0).sort_values(by = 'donor', ascending = False)
+
+# Plot the stacked bar chart for the selected sectors
+grouped_sectors.plot(kind='bar', stacked=True, figsize=(10, 6))
+
+# Customize the plot
+plt.xlabel('Donor')
+plt.ylabel('Number of Projects')
+plt.title('Number of Projects by Donor and Selected Sectors')
+plt.xticks(rotation=45)
+plt.legend(title='Sector Description')
+
+# Show the plot
+plt.tight_layout()  # Adjust layout to fit labels
+plt.show()
+```

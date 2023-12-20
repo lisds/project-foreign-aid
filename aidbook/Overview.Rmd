@@ -1,0 +1,60 @@
+---
+jupyter:
+  jupytext:
+    text_representation:
+      extension: .Rmd
+      format_name: rmarkdown
+      format_version: '1.2'
+      jupytext_version: 1.15.2
+  kernelspec:
+    display_name: Python 3
+    language: python
+    name: python3
+---
+
+# Overview
+
+
+This page looks at the broad trends in aid distribution by country and donor to understand the overall patterns in the data set
+
+```{python}
+#Import necessary modules
+
+import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
+```
+
+```{python}
+#Fetch the data
+# %run fetch_data.py
+```
+
+```{python}
+#Unpack the data
+# %run opening_zip_cleaning.py
+```
+
+```{python}
+#Counts the aid projects by country
+aid_by_country = all_aid['countryname_COW'].value_counts().sort_values(ascending = False).head(50)
+
+#Plots the top 50 countries by receipt of aid
+aid_by_country.plot(kind='bar', figsize=(10, 6))
+plt.title('Aid Distribution by Country')
+plt.xlabel('Country')
+plt.ylabel('Number of Aid Projects')
+plt.show()
+```
+
+```{python}
+#Counts the aid projects by donor
+aid_by_donor = all_aid['donor'].value_counts()
+
+#Visualization
+aid_by_donor.plot(kind='bar', figsize=(10, 6))
+plt.title('Aid Projects by Donor')
+plt.xlabel('Donor')
+plt.ylabel('Number of Aid Projects')
+plt.show()
+```

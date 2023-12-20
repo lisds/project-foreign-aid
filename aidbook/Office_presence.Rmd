@@ -1,0 +1,109 @@
+---
+jupyter:
+  jupytext:
+    text_representation:
+      extension: .Rmd
+      format_name: rmarkdown
+      format_version: '1.2'
+      jupytext_version: 1.15.2
+  kernelspec:
+    display_name: Python 3
+    language: python
+    name: python3
+---
+
+# Office Presence
+
+
+Here we will dive deeper into understanding the relationship between the aid project rating and whether or not there was an office of the donor entity in the country where the project took place
+
+The rationale behind looking at this aspect of the data is that we believe there is potential for a bias towards higher ratings if the donor has a presence in the country in which the project was active. These projects feed in to the overall reputation and credibility of the donors, and since it is the donor themself who rates the project, it is possible that we would see higher ratings out of six where offices were present.
+
+```{python}
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+```
+
+```{python}
+# %run fetch_data.py
+```
+
+```{python}
+# %run opening_zip_cleaning.py
+```
+
+```{python}
+#This code explores the relationship between rating out of 6 and office presence
+
+#this makes a new column where the office presence is turned into an integer; 0 for no, 1 for yes
+all_aid['Office?'] = all_aid['office_presence'].apply(lambda x: 'no' if x == 0 else 'yes')
+
+#this rounds the floats of rating to 2 decimal places
+all_aid['six_overall_rating'] = pd.to_numeric(all_aid['six_overall_rating'], errors='coerce')
+all_aid['Rating Rounded'] = all_aid['six_overall_rating'].round(2)
+
+#makes an array for office presence
+office_presence = np.array(all_aid['Office?'])
+office_presence
+
+#makesan array for rating
+rating = np.array(all_aid['Rating Rounded'])
+rating
+
+#This makes a scatter for office presence
+
+def plot_office():
+    plt.scatter(office_presence, rating)
+    plt.scatter(['no', 'yes'], [0, 1], alpha = 0)
+    plt.xlabel('Office?')
+    plt.ylabel('Rating')
+    
+plot_office();
+```
+
+```{python}
+#this code adds the mean to each group
+
+no_mean = all_aid[all_aid['Office?'] == 'no']['Rating Rounded'].mean()
+yes_mean = all_aid[all_aid['Office?'] == 'yes']['Rating Rounded'].mean()
+
+plot_office()
+plt.scatter(['no', 'yes'], [no_mean, yes_mean],
+            color = 'red', label = 'mean of each group', marker = 'X')
+plt.plot(['no', 'yes'], [no_mean,yes_mean],
+         color = 'red')
+plt.legend();
+```
+
+```{python}
+#attempt to run classification test
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import classification_report, confusion_matrix
+
+# Drop rows where either 'six_overall_rating' or 'donor' is NaN
+all_aid_cleaned = all_aid.dropna(subset=['six_overall_rating', 'office_presence'])
+
+# Prepare the data
+X = all_aid_cleaned[['six_overall_rating']]  # Predictor
+y = all_aid_cleaned['office_presence']  # Target variable
+
+# Split the data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y)
+
+# Create and train the logistic regression model
+model = LogisticRegression()
+model.fit(X_train, y_train)
+
+# Make predictions on the test set
+y_pred = model.predict(X_test)
+
+# Model evaluation
+classification_report_output = classification_report(y_test, y_pred)
+
+# Generating the confusion matrix
+cm = confusion_matrix(y_test, y_pred)
+
+print(classification_report_output)
+```
