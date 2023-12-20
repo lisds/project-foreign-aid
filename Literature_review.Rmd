@@ -1,0 +1,31 @@
+---
+jupyter:
+  jupytext:
+    text_representation:
+      extension: .Rmd
+      format_name: rmarkdown
+      format_version: '1.2'
+      jupytext_version: 1.15.2
+  kernelspec:
+    display_name: Python 3 (ipykernel)
+    language: python
+    name: python3
+---
+
+# Literature Review
+
+
+The literature review for this report explores aid and development in a wider context. Investigating existing academic work on aid and its impact as well as critical factors for project success, impacts of aid on regional development and explorations of aid dependency and neoliberalism. This literature has helped inform our data analysis. 
+
+In their paper investigating ‘The Best and Worst Practices in Foreign Aid’, Easterly and Pfutze (2008) critically analyse foreign aid practices, focusing on the allocation and utilisation of funds in the global aid system. Their study highlights the challenges in efficient aid distribution, questioning the transparency and impact of financial flows in aid agencies. They raise important questions about the transparency, accountability and impact of these financial flows on the recipient countries. Concurrently, Ravallion (2016) scrutinises the World Bank's impact on global development, assessing its adaptability, efficiency and effectiveness in responding to the needs of developing countries, in particular. Ravallion highlights the need to reform the institution and enhance its contribution to the development of the Global South. Together, these works provide crucial insights for further exploration, investigating the impact of and effectiveness of foreign aid. 
+
+Literature by Diallo and Thuillier (2004) dives into the factors which drive project success in international development. Their research ascertains that a range of factors are crucial, including project management practices, stakeholder involvement and the socio-economic and political context of the recipient countries. This research suggests that to get a better understanding of the scope of the impact of aid and its success, one must also look at additional data sources, such as socio-economic data. Ika et al. (2012) further expand on this research, looking more specifically at the World Bank and its development projects. They found that a major contributor to the success of a project was the alignment between project goals and the target community's needs, as well as the process of continuous adaptation and learning throughout the project life cycle. This also suggests the need to understand more than just the numerical data to understand the impact and success of projects.
+
+Cantarelli et al. (2012) provides insight into how location affects a project’s cost and therefore performance. It reveals the impact of geographical factors in the success of development initiatives, arguing that a projects physical location can influence various cost-related factors, including labour, material costs, logistical challenges and the socio-political environment. It highlights the positive impact existing infrastructure can have on a project, in contrast to projects in remote or underdeveloped locations, where there is a lack of such infrastructure. Ultimately Cantarelli et al. 's work highlights the importance of consideration of the local governance, cultural context and regional economic conditions for the success of the project. It therefore highlights the importance of such perspectives in understanding spatial variables when evaluating the impact and success of development projects. 
+
+Another perspective that emerged from the discourse on the impact of aid was around the concept of aid dependence and the coinciding of international aid and the resurgence of neoliberal policies, particularly on the African continent. Hilary’s (2010) analysis provides an nuanced understanding of how foreign aid has led to neoliberal economic principles across the African continent, and with it, the influx of foreign aid. Hilary argues that though it often seems beneficial, it often comes with strings attached that move countries towards privatisation, which can exacerbate socio-economic and political issues such as inequality and corruption. Tandon (2008) similarly addresses the pervasive issue of aid dependency, particularly in the context of developing countries, he argues that the conventional aid system creates a dependency whereby recipient countries become reliant on external financial support, which undermines the countries independent economic development and self-sufficiency. He argues developmental models that emphasise self-reliance, local resource mobilisation and the empowerment of local institutions can counter some of the effects of these neoliberal aid policies. This in turn can push developing countries to sustain themselves independently. 
+
+Hugeset al. 's (2005) work on the intricate dynamics that exist between rights, power and the roles of international development agencies, such as the World Bank, shows the profound ways in which development projects influence the distribution of power and rights in recipient countries. Their work focuses on how power dynamics at both a local and international level shape the agenda and policies of development. They argue that development aid can inadvertently reinforce existing power imbalances, as well as creating new ones. They also highlight the responsibility of development agencies in the acknowledgement of such power dynamics, and move towards actively empowering recipient countries, moving towards a more participatory and inclusive approach to development. 
+
+This literature review synthesises a range of academic perspectives on the complexities of foreign aid and its impact on global development. It emphasises the importance of critical analysis on impact and consideration of the factors influencing success, including geography. It also considers the broader socio-political implications and power dynamics in recipient countries. This has helped us to develop a selection of exploratory questions which have laid the groundwork for our data analysis. 
+
