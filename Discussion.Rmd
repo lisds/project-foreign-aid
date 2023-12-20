@@ -1,0 +1,52 @@
+---
+jupyter:
+  jupytext:
+    text_representation:
+      extension: .Rmd
+      format_name: rmarkdown
+      format_version: '1.2'
+      jupytext_version: 1.15.2
+  kernelspec:
+    display_name: Python 3 (ipykernel)
+    language: python
+    name: python3
+---
+
+<!-- #region -->
+# Discussion 
+
+The discussion section of our report synthesises the findings from the provided data analysis, the literature review, and exploratory questions. The regression analysis showcasing 87% accuracy in predicting office presence underscores the significant role of logistical infrastructure in aid delivery. This aligns with literature emphasising the effectiveness of foreign aid is contingent on adequate on-ground support.
+The analysis of project success factors indicates that variables such as sector focus, geographic location, and project duration are pivotal. For instance, the concentration of aid in sectors like agriculture and infrastructure across India, Mexico, and Morocco points to a strategic prioritisation aligned with each country's developmental needs, as evidenced by the substantial investments despite a lower project count in these sectors. Conversely, the distribution of aid in Russia diverges, focusing on environmental protection and civil society, suggesting donor adaptation to regional developmental agendas as well as donor’s power in choosing the sectors they want to invest in, which is also illustrated by Hugeset al. 's (2005) work on power dynamics. 
+The study's limitations, primarily time constraints and the exploratory nature of the research, restricted our ability to dive deeper into investigating aid dependency and the inclusion of socio-economic and political indices to provide a more rounded and nuanced perspective. These limitations, however, pave the way for future research opportunities. 
+Additionally, one of our team members was unwell during a significant portion of the project, which meant we had to adjust our existing workloads and get to grips with their work. 
+Addressing the exploratory questions, the study revealed distinct regional patterns in aid allocation over time, with variations in project ratings suggesting multifaceted contributing factors. The trends in higher project ratings highlighted the influence of office presence, donor preferences, and project duration. The variance in sector investment by donors further emphasized the strategic alignment of aid with national development goals.
+The findings have practical implications for stakeholders, offering insights into successful project planning and implementation. For data analysts, the groundwork laid by examining suggested variables, like project size in USD, provides a foundation for further research. The study encourages an iterative learning approach for improving aid effectiveness, emphasizing the need for collaboration between donors and governments to optimise the impact of foreign assistance.
+<br> 
+# Conclusion 
+The analysis presented in our report illustrates the complex nature of foreign aid distribution and its outcomes. It concludes that the presence of donor offices, the specific sectors of investment, and the duration of projects are crucial in determining the success of aid initiatives. Recommendations include enhancing on-ground support infrastructure, tailoring projects to align with regional developmental goals, and promoting donor collaboration with recipient countries.
+Future research should focus on integrating socio-economic and political indices to assess aid dependency, investigate the long-term sustainability of aid projects, and further explore the interplay between donor strategies and regional development outcomes. This would provide a more comprehensive understanding of the efficacy and impact of foreign aid to empower and facilitate global development
+
+
+# Bibliography 
+Barabashev, A. and Klimenko, A. (2023). ADMINISTRATIVE AND CIVIL SERVICE REFORMS IN RUSSIA: RECENT TRENDS AT THE TIME OF TURBULENCE. Public Administration Issues, [online] (6). Available at: https://vgmu.hse.ru/en/2023--6/862592891.html#:~:text=URL%3A%20https%3A%2F%2Fvgmu.hse.ru%2Fen%2F2023 [Accessed 20 Dec. 2023].
+Cantarelli, C.C., Flyvbjerg, B. and Buhl, S.L., 2012. Geographical variation in project cost performance: the Netherlands versus worldwide. Journal of Transport Geography, 24, pp.324-331. Available at: https://www.sciencedirect.com/science/article/pii/S0966692312000774 [Accessed 19 Dec 2023].
+Diallo, A. and Thuillier, D., 2004. The success dimensions of international development projects: the perceptions of African project coordinators. International Journal of Project Management, 22(1), pp.19-31. Available at: https://www.sciencedirect.com/science/article/pii/S0263786304000997 [Accessed 19 Dec 2023].
+Dubashi, N., Fiocco, D., Goyal, A., Nathani, N. and Tandon, A. (2023). How agtech is transforming agriculture in India | McKinsey. [online] www.mckinsey.com. Available at: https://www.mckinsey.com/industries/agriculture/our-insights/how-agtech-is-poised-to-transform-india-into-a-farming-powerhouse#:~:text=By%202030%2C%20agriculture%20could%20contribute [Accessed 20 Dec. 2023].
+Easterly, W. and Pfutze, T., 2008. Where does the money go? Best and worst practices in foreign aid. Journal of Economic Perspectives, 22(2), pp.29-52.
+Hilary, J., 2010. Africa: Dead Aid and the return of neoliberalism. Race & Class, 52(2), pp.79-84. Available at: https://citeseerx.ist.psu.edu/document?repid=rep1&type=pdf&doi=5d0c9151b88412349192d5b8332b3558af458a2a [Accessed 19 Dec 2023].
+Hughes, A., Wheeler, J. and Eyben, R., 2005. Rights and power: the challenge for international development agencies. IDS Bulletin, 36(1), pp.63-72. Available at: https://onlinelibrary.wiley.com/doi/abs/10.1111/j.1759-5436.2005.tb00179.x [Accessed 19 Dec 2023].
+Ika, L.A., Diallo, A. and Thuillier, D., 2012. Critical success factors for World Bank projects: An empirical investigation. International Journal of Project Management, 30(1), pp.105-116. Available at: https://www.sciencedirect.com/science/article/pii/S0263786311000469 [Accessed 19 Dec 2023].
+Lee, B., 2016. What makes a good project? Success factors of the World Bank education development projects. Vanderbilt University. Available at: https://search.proquest.com/openview/bc9777dfc66c252a08982b3991123d07/1?pq-origsite=gscholar&cbl=18750 [Accessed 19 Dec 2023].
+Magoum, I. (2022). MOROCCO: mobilizing an additional €940 million for water in the agricultural sector. [online] Afrik 21. Available at: https://www.afrik21.africa/en/morocco-mobilizing-an-additional-e940-million-for-water-in-the-agricultural-sector/#:~:text=The%20country%20will%20release%20a [Accessed 20 Dec. 2023].
+McCormick, Dorothy. “China & India as Africa’s New Donors: The Impact of Aid on Development.” Review of African Political Economy, vol. 35, no. 115, Mar. 2008, pp. 73–92, https://doi.org/10.1080/03056240802011501.
+“History of DAC Lists of Aid Recipient Countries - OECD.” www.oecd.org/dac/financing-sustainable-development/historyofdaclistsofaidrecipientcountries.htm.
+Ravallion, M., 2016. The World Bank: Why it is still needed and why it still disappoints. Journal of Economic Perspectives, 30(1), pp.77-94. Available at: https://www.aeaweb.org/articles?id=10.1257/jep.30.1.77 [Accessed 19 Dec 2023].
+Ross, S. (2021). What Are the Different Types of Foreign Aid? [online] Investopedia. Available at: https://www.investopedia.com/articles/investing/082616/what-are-different-types-foreign-aid.asp.
+Tandon, Y., 2008. Ending aid dependence. Fahamu/Pambazuka. Available at: https://books.google.co.uk/books?hl=en&lr=&id=NkDmIZ-6vLgC&oi=fnd&pg=PP1&dq=ending+aid+dependency&ots=hB3MNEwfKP&sig=jGiukL30O7J3nFbXO_Ue-_9UwwM [Accessed 19 Dec 2023].
+World Bank (2012). US$500 Million for Secondary Education Project, India. [online] World Bank. Available at: https://www.worldbank.org/en/news/press-release/2012/03/22/us500-million-for-secondary-education-project-india [Accessed 20 Dec. 2023].
+World Bank (2014). Government of India and World Bank Sign $1006.20 Million Agreement to Improve Learning Outcomes and Retention in Elementary Education. [online] World Bank. Available at: https://www.worldbank.org/en/news/press-release/2014/05/29/improve-learning-elementary-education-ssa.
+World Bank (2022a). World Bank Supports Resilient and Sustainable Agriculture in Morocco. [online] World Bank. Available at: https://www.worldbank.org/en/news/press-release/2022/03/25/world-bank-supports-resilient-and-sustainable-agriculture-in-morocco#:~:text=%2B1%20%28202%29%20304 [Accessed 20 Dec. 2023].
+World Bank (2022b). World Bank Supports Resilient and Sustainable Agriculture in Morocco. [online] World Bank. Available at: https://www.worldbank.org/en/news/press-release/2022/03/25/world-bank-supports-resilient-and-sustainable-agriculture-in-morocco#:~:text=%2B1%20%28202%29%20304 [Accessed 20 Dec. 2023].
+Xinhua News (2008). Guizhou-Guangzhou Railway Starts Building - en.chinagate.com.cn. [online] en.chinagate.cn. Available at: http://en.chinagate.cn/news/2008-10/14/content_16606923.htm [Accessed 20 Dec. 2023].
+
+<!-- #endregion -->
