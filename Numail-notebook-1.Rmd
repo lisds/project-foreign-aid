@@ -12,36 +12,25 @@ jupyter:
     name: python3
 ---
 
-```{python}
-# from pathlib import Path
-# import pandas as pd
-# import matplotlib as plt
-# from zipfile import ZipFile
+## Numail's notebook ##
 
-# data_dir = Path('data')
-# data_dir.mkdir(exist_ok = True)
-# file_path = data_dir / Path('PPD2_Jan_21_2022.zip')
-# dest_path = file_path
 
-# # Unzipping and getting the CV file.
-# with ZipFile(dest_path, 'r') as my_zip:
-    
-#     csv_filename = 'PPD2_Jan_21_2022.csv'
+In this notebook, we begin with some exploratory analysis, first looking at general trends observed across all donor organisations, before later exploring more granular data on the African Development Bank (AfDB) and doing correlation testing. 
 
-#     my_zip.extract(csv_filename, path='temp')
-#     csv_path = Path('temp') / csv_filename
-#     df = pd.read_csv(csv_path)
+Most of our initial cleaning has been included in the 'fetch_data' and 'opening_zip_cleaning' files. 
 
-# #  Now to explore some of that data, first set up a dataset of just the first columns that all share: from columns A-AG
-# all_aid = df.iloc[:, :33]
-# # print(all_aid.head())
-# #  We need to clean further in here, and we may want to add the columns at the end? 
+In fetch_data, we unzip and get the CSV file and set up a dataset with just the first 33 columns (columns A-AG). We've done this for simplicity and ease of analysis as these columns include data across all donor organisations, and these were the primary columns that we were to perform the initial analysis on. Column 33 onwards mostly includes data for specific donor organisations, with several missing values. This sub-dataset later proved to be slightly limiting when we had to refer to or use values from other columns included further along the dataset, e.g. impact ratings and project size, meaning that we had to use the larger dataset (df) to perform this analysis, especially as different team members were interested in different columns -- although this didn't prove to be a major issue. 
 
-```
+In opening_zip_cleaning, we've cleaned donor names by creating DataFrames for unique donors. Having this list of dataset names to hand has been integral to our later work, since this saves us manually filtering for specific donors. 
+
+
+Below, we're importing the relevant packages and running data:
 
 ```{python}
 import pandas as pd
-import matplotlib as plt
+import matplotlib.pyplot as plt
+import networkx as nx
+import plotly.graph_objects as go
 ```
 
 ```{python}
@@ -52,35 +41,28 @@ run fetch_data.py
 run opening_zip_cleaning.py
 ```
 
+The dataset includes the following donor organisations: <br>
+<br>
+AfricanDB: African Development Bank <br>
+AsianDB: Asian Development Bank <br>
+CDB: Caribbean Development Bank <br>
+DFAT: Australia’s Department of Foreign Affairs and Trade <br>
+DFID: UK’s Department for InternationalDevelopment <br>
+GEF: Global Environment Fund <br>
+GFATM: Global Fund for AIDS, Tuberculosis, and Malaria <br>
+GiZ: German Society for International Cooperation <br>
+IFAD: International Fund for Agricultural Development <br>
+JICA: Japanese International Cooperation Agency <br> 
+KfW: German Development Bank <br>
+WB: World Bank <br>
+<br>
+Within our analysis, we focus mostly on World Bank, AfricanD, GiZ and JICA, in addition to looking at general trends and cumulative values across all organisations.
+
 ```{python}
 all_aid
 ```
 
-```{python}
-unique_donors = df['donor'].unique()
-
-# Create a list to store dataset names
-dataset_names = []
-
-# Create DataFrames for each donor with specific names
-for donor in unique_donors:
-    # Create a DataFrame with a specific name based on the donor
-    donor_df = df[df['donor'] == donor].copy()
-    
-    # Define the naming convention (replace spaces with underscores and add a prefix)
-    # donor_name = donor # Convert spaces to underscores and lowercase
-    dataset_name = f"{donor}_df"
-    
-    # Assign the DataFrame to a variable with the specified name
-    globals()[dataset_name] = donor_df
-    
-    # Add the dataset name to the list
-    dataset_names.append(dataset_name)
-
-# Print the list of dataset names
-print("List of dataset names:")
-print(dataset_names)
-```
+Below, we've done some exploratory analysis on donors, mostly just using .describe(). This is because we were interested in general trends and spread of our key numerical values for specific donors e.g. project duration, project size, and overall rating. This helped us identify areas for further exploration, for example looking into why eval_lag values could be negative. This led us to explore completion dates further which we'll elaborate on later in the analysis. 
 
 ```{python}
 AfricanDB_df
@@ -98,9 +80,13 @@ AsianDB_df.describe()
 CDB_df.describe()
 ```
 
+Eval_lag is the difference between the date of project evaluation and the date of project completion. Interesting to note how the mean eval_lag is negative, suggesting that most projects were evaluated before being completed which is rather odd. <br> However, after some further investigation, we found out that some projects, especially particularly well-funded large-scale projects, generally tend to continue until well after their stipulated completion date, which is why they can continue after being officially evaluated.
+
 ```{python}
 DFAT_df.describe()
 ```
+
+Even more negative mean eval_lag value for DFID, showing how most projects on average were evaluated 2272 days before the completion date.
 
 ```{python}
 DFID_df.describe()
@@ -119,7 +105,14 @@ all_aid.columns
 ```
 
 ```{python}
-import pandas as pd
+num_columns = df.shape[1]
+num_columns
+```
+
+Identifying the negative eval_lag values prompted us to explore the trend in completion dates further. We first converted them to datetime values to make analysis easier, and by plotting them, we discovered an unusually high number of projects in 1965. Since we couldn't find anything conclusive in the pdf document or online, we hypothesised that this was because all historic projects completed prior to 1965 were also counted as being completed in 1965. Another proposition was that 1965 was the default value, so most of these values were a data entry error. This proved to be important later in the analysis since we had to make the call of whether to exclude these values entirely as they were skewing the results of our regression analysis. 
+
+```{python}
+# Grouping by completion year and performing some exploratory analysis
 
 # Convert 'completion_date' to datetime format
 all_aid['completion_date'] = pd.to_datetime(all_aid['completion_date'], errors='coerce')
@@ -130,11 +123,9 @@ all_aid['completion_year'] = all_aid['completion_date'].dt.year
 # Group by completion year
 grouped_by_year_completion = all_aid.groupby('completion_year')
 
-# Perform operations on each group, for example, count the number of projects in each year
+# Count the number of projects in each year
 projects_count_by_year_completion = grouped_by_year_completion.size()
-
-# Display the result or perform further analysis
-print(projects_count_by_year_completion)
+projects_count_by_year_completion
 
 ```
 
@@ -147,6 +138,8 @@ plt.ylabel('Number of Projects')
 plt.show()
 ```
 
+Doing the same for start years:
+
 ```{python}
 # Convert 'start_date' to datetime format
 all_aid['start_date'] = pd.to_datetime(all_aid['start_date'], errors='coerce')
@@ -157,11 +150,9 @@ all_aid['start_year'] = all_aid['start_date'].dt.year
 # Group by start year
 grouped_by_year_start = all_aid.groupby('start_year')
 
-# Perform operations on each group, for example, count the number of projects in each year
+# Count the number of projects in each year
 projects_count_by_year_start = grouped_by_year_start.size()
-
-# Display the result or perform further analysis
-print(projects_count_by_year_start)
+projects_count_by_year_start
 
 ```
 
@@ -171,42 +162,216 @@ all_aid['start_year']
 
 ```{python}
 projects_count_by_year_start.plot(kind='bar', color='skyblue')
-plt.title('Number of Projects by Completion Year')
-plt.xlabel('Completion Year')
+plt.title('Number of Projects by Start Year')
+plt.xlabel('Start Year')
+plt.ylabel('Number of Projects')
+plt.show()
+```
+
+The bar chart above summarises the trend in start years, showing that the number of projects rapidly increased up until the early 2000s after which they started decreasing, perhaps due to a link between 9/11 and aid inflow. However, the number of projects has continued to decrease in recent years, which is slightly counterintuitive. There are a few projects with start years post 2060, which raised some confusion and we've deemed them to be data entry errors post some further investigation. This is because most of the completion years of these projects seem to be pre 2000s and it's unrealistic for start dates to be decided so far ahead in advance.
+
+```{python}
+start_after_2000 = all_aid[all_aid['start_year'] > 2000]
+
+grouped_by_year_start_2000 = start_after_2000.groupby('start_year')
+
+# Count the number of projects in each year
+projects_count_by_year_start_2000 = grouped_by_year_start_2000.size()
+
+projects_count_by_year_start_2000.plot(kind='bar', color='skyblue')
+plt.title('Number of Projects by Start Year')
+plt.xlabel('Start Year')
 plt.ylabel('Number of Projects')
 plt.show()
 ```
 
 ```{python}
-all_aid['start_year']
+start_after_2060 = all_aid[all_aid['start_year'] > 2060]
+start_after_2060
 ```
+
+This analysis seems to contradict our previous analysis of completion years (where we created our own column based on completion date, whereas this is included within the dataset) as the trend observed here is different to what was observed previously. This could either be due to data inconsistencies within the data set or a data manipulation error on our end -- check with Jet 
 
 ```{python}
 all_aid['completionyear'].value_counts()
 ```
 
 ```{python}
+# Grouping by completionyear
 completion_year_test = all_aid.groupby('completionyear')
 
-# Perform operations on each group, for example, count the number of projects in each year
+# Count the number of projects in each year
 completion_year_size = completion_year_test.size()
-
-# Display the result or perform further analysis
 completion_year_size
 
 completion_year_size.plot(kind='bar', color='skyblue')
 ```
 
 ```{python}
+all_aid[['completion_year', 'completionyear']]
+```
+
+Following our analysis on start years, we created the following function to make it easier to illustrate the trend in the number of projects per country. The function can be configured to show start year or completion year for the top 5 (or however many) countries of your choosing.
+
+```{python}
+def x_time_plot(df, x_col, y_col, n):
+    """
+    Group the DataFrame by x_col, count occurrences of values in y_col, 
+    select the top n most common values, and plot the results in a line graph.
+
+    Parameters:
+    - df: pandas DataFrame
+    - x_col: str, the name of the column to use as the x-axis i.e. startyear / completionyear
+    - y_col: str, the name of the column to count values in i.e. countryname_WB or countryname_COW
+    - n: int, the number of top values to select and plot
+
+    Returns:
+    - None (plots the results)
+    """
+    # Get the top n most common values in y_col
+    y_top = df[y_col].value_counts().head(n).index
+
+    # Filter rows where y_col is in the top values
+    new_data = df[df[y_col].isin(y_top)]
+
+    # Group by x_col and y_col, count occurrences, and unstack to prepare for plotting
+    grouped_data = new_data.groupby([x_col, y_col]).size().unstack()
+
+    # Plot the results
+    ax = grouped_data.plot(kind='line', figsize=(10, 6))
+    ax.set_xlabel(x_col)
+    ax.set_ylabel('Count')
+    ax.set_title(f'Top {n} Values in {y_col} Grouped by {x_col}')
+    ax.legend(title=y_col, bbox_to_anchor=(1, 1))
+    plt.show()
+
+x_time_plot(all_aid, 'startyear', 'countryname_WB', 5)
+```
+
+```{python}
+new_data_function = df[df['countryname_WB'] == 'Pakistan']
+new_data_function
+```
+
+This function is a modification of the previous function and plots the number of projects per country. This proved to be very useful for our subsequent more granular analysis per country, helping explain country-specific trends, e.g. those observed in China. 
+
+```{python}
+def x_time_plot(df, x_col, y_col, country_name):
+    """
+    Group the DataFrame by x_col, count occurrences of values in y_col for a specific country,
+    and plot the results in a line graph.
+
+    Parameters:
+    - df: pandas DataFrame
+    - x_col: str, the name of the column to use as the x-axis
+    - y_col: str, the name of the column to count values in
+    - country_name: str, the specific country for which to plot occurrences
+
+    Returns:
+    - None (plots the results)
+    """
+    # Filter rows for the specific country
+    new_data_function = df[df[y_col] == country_name]
+
+    # Group by x_col and y_col, count occurrences, and unstack to prepare for plotting
+    grouped_data_function = new_data_function.groupby([x_col, y_col]).size().unstack()
+
+    # Plot the results
+    ax = grouped_data_function.plot(kind='line', figsize=(10, 6))
+    ax.set_xlabel(x_col)
+    ax.set_ylabel('Count')
+    ax.set_title(f'Number of projects in {country_name}')
+    ax.legend(title=y_col, bbox_to_anchor=(1, 1))
+    plt.show()
+
+# Example usage:
+x_time_plot(all_aid, 'startyear', 'countryname_COW', 'China')
+
+```
+
+```{python}
+x_time_plot(all_aid, 'startyear', 'countryname_COW', 'Indonesia')
+```
+
+```{python}
+x_time_plot(all_aid, 'startyear', 'countryname_WB', 'Africa')
+```
+
+```{python}
+x_time_plot(all_aid, 'startyear', 'countryname_COW', 'Tanzania')
+```
+
+```{python}
+all_aid['donor'].value_counts(dropna = False)
+```
+
+As suggested in the Codebook PDF under 'suggested variables for further analysis', we created a column for 'Project size in USD'. This was generated by multiplying the appropriate exchange rate as outlined in the Codebook. This helped in ensuring uniformity and consistency when comparing project sizes, especially in our later regression analysis. The exchange rates used are based on current exchange rates at time of first conversion but a better approach would've been using historic exchange rates at time of project approval, or completion. Due to time limitations and for simplicity, we chose to proceed with the values included in the Codebook. 
+
+Check w Jet that he's used this figure in his analyses. 
+
+```{python}
+# Function to create project_size_USD_calculated column
+
+project_size_df = all_aid.dropna(subset=['projectsize_original']).copy()
+
+def convert_to_usd(row):
+    donor = row['donor']
+    amount = row['projectsize_original']
+    rates = {'AfricanDB': 1, 'AsianDB': 1_000_000, 'DFID': 1.35, 'GEF': 1_000_000, 'GFATM': 1, 'GiZ': 1_200,
+             'IFAD': 1_000_000, 'JICA': 10_687, 'KfW': 1.2, 'WB': 1}
+    return rates[donor] * amount
+
+# Apply the modified function to create a new column
+project_size_df['project_size_USD_calculated'] = project_size_df.apply(convert_to_usd, axis=1)
+```
+
+```{python}
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+sns.set(style="whitegrid")
+plt.figure(figsize=(12, 8))
+
+# Create a boxplot 
+sns.boxplot(x='donor', y='project_size_USD_calculated', data=project_size_df)
+
+plt.title('Project Size Distribution by Donor')
+plt.xlabel('Donor')
+plt.ylabel('Project Size (USD)')
+plt.show()
+
+```
+
+```{python}
+x = project_size_df[['donor', 'projectsize_original', 'project_size_USD_calculated']].copy()
+plt.hist(x['project_size_USD_calculated'])
+```
+
+```{python}
+x.groupby('donor').mean()
+```
+
+```{python}
+x.groupby('donor').std()
+```
+
+# Focusing specifically on Africa..
+
+
+As mentioned in the Literature Review, we were particularly interested in African countries, with some of our exploratory questions geared specifically towards Africa. Therefore, we began with some exploratory analysis to identify the countries where the African Development Bank is investing most heavily. This included plotting the project duration of projects funded by AfDB, and then exploring any outliers that were of interest. 
+
+```{python}
 africa_duration = (df['project_duration'] >= 100) & (df['project_duration'] <= 7500) & (df['donor'] == 'AfricanDB')
 
 df_selected_africa = df[africa_duration]
 
-# Plot the histogram for the selected range
+# Plotting the histogram for the selected range
 df_selected_africa['project_duration'].plot(kind='hist', bins=20)
 ```
 
 ```{python}
+# Zooming in on African outliers i.e. projects with an unusually long duration
+
 africa_duration_outliers = (df['project_duration'] >= 5000) & (df['donor'] == 'AfricanDB')
 africa_duration_outliers
 
@@ -214,43 +379,35 @@ df_selected_africa_outliers = df[africa_duration_outliers]
 df_selected_africa_outliers
 ```
 
+We then investigated these outliers further to identify the potential reasons behind their extended duration. <br>
+[Add qual analysis]
+
 ```{python}
 df_selected_africa_outliers['projectname']
 ```
 
 ```{python}
-import pandas as pd
-import networkx as nx
-import matplotlib.pyplot as plt
+# # Trying to create DAGs/Sankey diagram 
 
-# Assuming all_aid is your DataFrame with columns 'donor' and 'countryname_COW'
-# You may need to adjust column names based on your actual DataFrame
+# G = nx.DiGraph()
 
-# Create a directed graph
-G = nx.DiGraph()
+# # Add edges (donor to recipient) based on aid data
+# edges = all_aid[['donor', 'countryname_COW']].dropna().values
+# G.add_edges_from(edges)
 
-# Add edges (donor to recipient) based on aid data
-edges = all_aid[['donor', 'countryname_COW']].dropna().values
-G.add_edges_from(edges)
+# # Set node positions 
+# pos = nx.spring_layout(G)
 
-# Set node positions (you may want to customize this based on your data)
-pos = nx.spring_layout(G)
 
-# Draw the graph
-plt.figure(figsize=(12, 8))
-nx.draw(G, pos, with_labels=True, node_size=1000, node_color='skyblue', font_size=8, font_color='black', font_weight='bold', edge_color='gray', linewidths=0.5, arrowsize=10)
-plt.title('Aid Inflow Diagram')
-plt.show()
+# plt.figure(figsize=(12, 8))
+# nx.draw(G, pos, with_labels=True, node_size=1000, node_color='skyblue', font_size=8, font_color='black', font_weight='bold', edge_color='gray', linewidths=0.5, arrowsize=10)
+# plt.title('Aid Inflow Diagram')
+# plt.show()
 ```
 
+This is a generic graph showing the major aid recipients of the African DB. We wanted the arrows to proportionally represent the amount of aid flowing into specific countries, which is why we then created a Sankey diagram. 
+
 ```{python}
-import pandas as pd
-import networkx as nx
-import matplotlib.pyplot as plt
-
-# Assuming all_aid is your DataFrame with columns 'donor' and 'countryname_COW'
-# You may need to adjust column names based on your actual DataFrame
-
 # Create a directed graph
 G = nx.DiGraph()
 
@@ -258,10 +415,9 @@ G = nx.DiGraph()
 edges = AfricanDB_df[['donor', 'countryname_COW']].dropna().values
 G.add_edges_from(edges)
 
-# Set node positions (you may want to customize this based on your data)
+# Set node positions
 pos = nx.spring_layout(G)
 
-# Draw the graph
 plt.figure(figsize=(12, 8))
 nx.draw(G, pos, with_labels=True, node_size=1000, node_color='skyblue', font_size=8, font_color='black', font_weight='bold', edge_color='gray', linewidths=0.5, arrowsize=10)
 plt.title('Aid Inflow Diagram')
@@ -269,35 +425,7 @@ plt.show()
 ```
 
 ```{python}
-import pandas as pd
-import networkx as nx
-import matplotlib.pyplot as plt
-
-# Assuming all_aid is your DataFrame with columns 'donor', 'countryname_COW', and 'aid_amount'
-# You may need to adjust column names based on your actual DataFrame
-
-# Create a directed graph
-G = nx.DiGraph()
-
-# Add edges (donor to recipient) based on aid data
-edges = AfricanDB_df[['donor', 'countryname_COW']].dropna().values
-G.add_edges_from(edges)
-
-# Calculate total aid amount received by each country
-total_aid_per_country = df.groupby('countryname_COW')['afdb_projectamount_usd'].sum()
-total_aid_per_country = total_aid_per_country[total_aid_per_country > 0]
-
-# Set node positions (you may want to customize this based on your data)
-pos = nx.spring_layout(G)
-
-# Draw the graph with node sizes based on aid amount
-plt.figure(figsize=(12, 8))
-nx.draw(G, pos, with_labels=True, node_size=[total_aid_per_country.get(country, 1) for country in G.nodes], node_color='skyblue', font_size=8, font_color='black', font_weight='bold', edge_color='gray', linewidths=0.5, arrowsize=10)
-plt.title('Aid Inflow Diagram with Node Size based on Aid Amount')
-plt.show()
-```
-
-```{python}
+# Removing Multinational from countryname_COW
 # total_aid_per_country.remove()
 i = AfricanDB_df[((AfricanDB_df.countryname_COW != 'Multinational'))]
 i
@@ -305,7 +433,11 @@ i
 # AfricanDB_df.drop(i)
 ```
 
+In order to validate that our amounts in the Sankey diagram were accurate, we initially created a simple bar chart to show the aid flowing into African countries (from AfDB).
+
 ```{python}
+# Bar chart showing the total aid per country in Africa 
+
 total_aid_per_country = i.groupby('countryname_COW')['afdb_projectamount_usd'].sum()
 
 
@@ -319,141 +451,227 @@ plt.ylabel('Total Aid Amount (USD)')
 plt.show()
 ```
 
+## Sankey Diagrams
+
+
+As expected, these Sankey diagrams show the inflow of aid into the respective recipient countries. Morocco seemed to disproportionately receive higher funding than other countries, ... [explain why] + maybe Tunisia, Egypt.. 
+
 ```{python}
-import pandas as pd
-import networkx as nx
-import matplotlib.pyplot as plt
+# # This shows aid for all countries funded by the African DB and takes a while to run
 
-# Assuming df is your DataFrame with columns 'donor', 'countryname_COW', and 'afdb_projectamount_usd'
-# You may need to adjust column names based on your actual DataFrame
+# # Calculate the total project amount received by each country
+# total_amount_per_country = df.groupby('countryname_COW')['afdb_projectamount_usd'].sum()
 
-# Create a directed graph
-G = nx.DiGraph()
+# # Create a Sankey diagram
+# fig = go.Figure(data=[go.Sankey(
+#     node=dict(
+#         pad=15,
+#         thickness=20,
+#         line=dict(color='black', width=0.5),
+#         label=df['countryname_COW'].unique().tolist() + df['donor'].unique().tolist()
+#     ),
+#     link=dict(
+#         source=df['donor'].apply(lambda x: df['countryname_COW'].nunique() + df['donor'].nunique() + list(df['donor'].unique()).index(x)),
+#         target=df['countryname_COW'].apply(lambda x: list(df['countryname_COW'].unique()).index(x) if x in df['countryname_COW'].unique() else -1),
+#         value=df['afdb_projectamount_usd']
+#     )
+# )])
 
-# Add edges (donor to recipient) based on aid data
-edges = AfricanDB_df[['donor', 'countryname_COW']].dropna().values
-G.add_edges_from(edges)
+# # Update layout and show the Sankey diagram
+# fig.update_layout(title_text="Sankey Diagram of Project Amounts",
+#                   font_size=10,
+#                   hovermode='x',
+#                   xaxis=dict(showgrid=False, zeroline=False),
+#                   yaxis=dict(showgrid=False, zeroline=False),
+#                   margin=dict(l=0, r=0, b=0, t=40))
 
-# Calculate total aid amount received by each country
-total_aid_per_country = df.groupby('countryname_COW')['afdb_projectamount_usd'].sum()
-
-# Filter out values less than or equal to 0
-total_aid_per_country = total_aid_per_country[total_aid_per_country > 0]
-
-# Print or inspect total_aid_per_country
-print(total_aid_per_country)
-
-# Set node positions (you may want to customize this based on your data)
-pos = nx.spring_layout(G)
-
-# Print or inspect pos
-print(pos)
-
-# Draw the graph with node sizes based on aid amount
-plt.figure(figsize=(12, 8))
-nx.draw(G, pos, with_labels=True, node_size=[total_aid_per_country.get(country, 1) for country in G.nodes], node_color='skyblue', font_size=8, font_color='black', font_weight='bold', edge_color='gray', linewidths=0.5, arrowsize=10)
-plt.title('Aid Inflow Diagram with Node Size based on Aid Amount (Amount > 0)')
-plt.show()
+# fig.show()
 
 ```
 
 ```{python}
-import pandas as pd
-import networkx as nx
-import matplotlib.pyplot as plt
+# Code for Sankey Diagram (courtesy Stack Overflow)
 
-# Assuming df is your DataFrame with columns 'donor', 'countryname_COW', and 'afdb_projectamount_usd'
-# You may need to adjust column names based on your actual DataFrame
+# Calculate the total project amount received by each country
+total_amount_per_country = df.groupby('countryname_COW')['afdb_projectamount_usd'].sum()
 
-# Create a directed graph
-G = nx.DiGraph()
+# Select the top 20 receiving countries
+top_20_countries = total_amount_per_country.nlargest(20).index
 
-# Add edges (donor to recipient) based on aid data
-edges = AfricanDB_df[['donor', 'countryname_COW', 'afdb_projectamount_usd']].dropna().values
-G.add_weighted_edges_from(edges)
+# Filter the DataFrame to include only the top 20 receiving countries
+df_top_20 = df[df['countryname_COW'].isin(top_20_countries)]
 
-# Set node positions (you may want to customize this based on your data)
-pos = nx.spring_layout(G)
-
-# Extract edge weights
-edge_weights = [data['weight'] for _, _, data in G.edges(data=True)]
-
-# Draw the graph with edge widths based on aid amount
-plt.figure(figsize=(12, 8))
-nx.draw(G, pos, with_labels=True, node_size=1000, node_color='skyblue', font_size=8, font_color='black', font_weight='bold', edge_color='gray', width=edge_weights, arrowsize=10, edgecolors='black', node_edgecolors='black')
-plt.title('Aid Inflow Diagram with Edge Width based on Aid Amount')
-plt.show()
-
-```
-
-```{python}
-import pandas as pd
-import plotly.graph_objects as go
-
-# Assuming df is your DataFrame with columns 'donor', 'countryname_COW', and 'afdb_projectamount_usd'
-# You may need to adjust column names based on your actual DataFrame
-
-# Create a directed graph
-G = nx.DiGraph()
-
-# Add edges (donor to recipient) based on aid data
-edges = AfricanDB_df[['donor', 'countryname_COW', 'afdb_projectamount_usd']].dropna().values
-G.add_weighted_edges_from(edges)
-
-# Extract node positions
-pos = nx.spring_layout(G)
-
-# Create a list of edges and weights for Plotly
-edge_x = []
-edge_y = []
-edge_weights = []
-
-for edge in G.edges(data=True):
-    x0, y0 = pos[edge[0]]
-    x1, y1 = pos[edge[1]]
-    
-    edge_x.append(x0)
-    edge_x.append(x1)
-    edge_x.append(None)
-    edge_y.append(y0)
-    edge_y.append(y1)
-    edge_y.append(None)
-    
-    edge_weights.append(edge[2]['weight'])
-
-# Create Plotly figure
-fig = go.Figure()
-
-# Add edges as Scatter plot
-fig.add_trace(go.Scatter(
-    x=edge_x, y=edge_y,
-    line=dict(width=edge_weights, color='gray'),
-    hoverinfo='none',
-    mode='lines'
-))
-
-# Add nodes as Scatter plot
-fig.add_trace(go.Scatter(
-    x=[pos[node][0] for node in G.nodes()],
-    y=[pos[node][1] for node in G.nodes()],
-    mode='markers',
-    hoverinfo='text',
-    marker=dict(
-        size=10,
-        color='skyblue'
+# Create a Sankey diagram
+fig = go.Figure(data=[go.Sankey(
+    node=dict(
+        pad=15,
+        thickness=20,
+        line=dict(color='black', width=0.5),
+        label=df_top_20['countryname_COW'].unique().tolist() + df_top_20['donor'].unique().tolist()
+    ),
+    link=dict(
+        source=df_top_20['donor'].apply(lambda x: df_top_20['countryname_COW'].nunique() + df_top_20['donor'].nunique() + list(df_top_20['donor'].unique()).index(x)),
+        target=df_top_20['countryname_COW'].apply(lambda x: list(df_top_20['countryname_COW'].unique()).index(x) if x in df_top_20['countryname_COW'].unique() else -1),
+        value=df_top_20['afdb_projectamount_usd']
     )
-))
+)])
 
-# Customize layout
-fig.update_layout(
-    showlegend=False,
-    hovermode='closest',
-    margin=dict(b=0, l=0, r=0, t=0),
-    xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
-    yaxis=dict(showgrid=False, zeroline=False, showticklabels=False)
-)
+# Update layout and show the Sankey diagram
+fig.update_layout(title_text="Sankey Diagram of Top 20 Receiving Countries",
+                  font_size=10,
+                  hovermode='x',
+                  xaxis=dict(showgrid=False, zeroline=False),
+                  yaxis=dict(showgrid=False, zeroline=False),
+                  margin=dict(l=0, r=0, b=0, t=40))
 
-# Show the interactive plot
 fig.show()
+
+```
+
+```{python}
+# Top 10 countries with different colours per recipient country
+
+# Calculating the total project amount received by each country
+total_amount_per_country = df.groupby('countryname_COW')['afdb_projectamount_usd'].sum()
+
+# Selecting the top 10 receiving countries
+top_10_countries = total_amount_per_country.nlargest(10).index
+
+# Filtering the DataFrame to include only the top 10 receiving countries
+df_top_10 = df[df['countryname_COW'].isin(top_10_countries)]
+
+# Creating a Sankey diagram with different colors for each recipient
+unique_recipients = df_top_10['countryname_COW'].unique()
+color_scale = ['blue', 'green', 'red', 'purple', 'orange', 'yellow', 'brown', 'pink', 'gray', 'cyan']  # Defining my list of colors
+
+# Map each recipient to a color in the color scale
+fig = go.Figure(data=[go.Sankey(
+    node=dict(
+        pad=15,
+        thickness=20,
+        line=dict(color='black', width=0.5),
+        label=df_top_10['countryname_COW'].unique().tolist() + df_top_10['donor'].unique().tolist()
+    ),
+    link=dict(
+        source=df_top_10['donor'].apply(lambda x: df_top_10['countryname_COW'].nunique() + df_top_10['donor'].nunique() + list(df_top_10['donor'].unique()).index(x)),
+        target=df_top_10['countryname_COW'].apply(lambda x: list(df_top_10['countryname_COW'].unique()).index(x) if x in df_top_10['countryname_COW'].unique() else -1),
+        value=df_top_10['afdb_projectamount_usd'],
+        color=df_top_10['countryname_COW'].map(dict(zip(unique_recipients, color_scale)))  
+    )
+)])
+
+# Update layout and show the Sankey diagram
+fig.update_layout(title_text="Sankey Diagram of Top 10 Receiving Countries",
+                  font_size=10,
+                  hovermode='x',
+                  xaxis=dict(showgrid=False, zeroline=False),
+                  yaxis=dict(showgrid=False, zeroline=False),
+                  margin=dict(l=0, r=0, b=0, t=40))
+
+fig.show()
+
+```
+
+## Impact Analysis
+
+
+According to the pdf, the impact rating includes the positive and negative changes produced by a development intervention, directly or indirectly, intended or unintended. This involves the main impacts and effects resulting from the activity on the local social, economic, environmental and
+other development indicators. The examination should be concerned with both intended and unintended results and must also include the positive and negative impact of external factors, such as changes in terms of trade and financial conditions.
+When evaluating the impact of a programme or a project, it is useful to consider the following questions: <br />
+• What has happened as a result of the programme or project? <br />
+• What real difference has the activity made to the beneficiaries? <br />
+• How many people have been affected? <br />
+Source:
+OECD DAC Criteria for Evaluating Development Assistance http://www.oecd.org/dac/evaluation/daccriteriaforevaluatingdevelopmentassistance.htm
+
+```{python}
+df['giz_impact_rating'].notna()
+filtered_df_giz = df[df['giz_impact_rating'].notna()]
+filtered_df_giz
+
+filtered_df_giz[['project_id','giz_impact_rating', 'project_duration', 'countryname_COW', 'six_overall_rating', 'projectsize_original', 'sector_description']].head(50)
+```
+
+```{python}
+giz_impact_df = filtered_df_giz[['project_id','giz_impact_rating', 'project_duration', 'countryname_COW', 'six_overall_rating', 'projectsize_original']]
+giz_impact_df.describe()
+```
+
+```{python}
+giz_impact_df['countryname_COW'].value_counts()
+```
+
+```{python}
+impact_by_country = giz_impact_df.groupby('countryname_COW')['giz_impact_rating'].mean()
+impact_by_country
+```
+
+```{python}
+# Why are these countries low impact?
+low_impact_countries = impact_by_country[impact_by_country < 3].reset_index()
+low_impact_countries
+```
+
+```{python}
+giz_impact_df.head()
+```
+
+```{python}
+giz_low_impact_df = giz_impact_df[giz_impact_df['giz_impact_rating'] < 3.0]
+giz_low_impact_df
+```
+
+```{python}
+# Looking for correlations
+
+# Correlation between 'giz_impact_rating' and 'six_overall_rating
+correlation_giz = giz_impact_df['giz_impact_rating'].corr(giz_impact_df['six_overall_rating'])
+correlation_giz
+```
+
+```{python}
+plt.figure()
+plt.scatter(giz_impact_df['six_overall_rating'], giz_impact_df['giz_impact_rating'])
+plt.xlabel('six_overall_rating')
+plt.ylabel('giz_impact_rating')
+plt.title('Impact Rating vs Overall Rating')
+plt.show()
+```
+
+```{python}
+# Strong positive correlation observed between impact rating and overall rating
+
+from scipy.stats import pearsonr
+
+correlation, p_value = pearsonr(giz_impact_df['giz_impact_rating'], giz_impact_df['six_overall_rating'])
+
+print(f"Correlation: {correlation}")
+print(f"P-value: {p_value}")
+```
+
+```{python}
+plt.figure()
+plt.scatter(giz_impact_df['giz_impact_rating'], giz_impact_df['project_duration'])
+plt.ylabel('project duration')
+plt.xlabel('giz_impact_rating')
+plt.title('Project Duration vs Impact Rating')
+plt.show()
+```
+
+```{python}
+correlation, p_value = pearsonr(giz_impact_df['giz_impact_rating'], giz_impact_df['project_duration'])
+
+print(f"Correlation: {correlation}")
+print(f"P-value: {p_value}")
+```
+
+```{python}
+correlation, p_value = pearsonr(giz_impact_df['giz_impact_rating'], giz_impact_df['projectsize_original'])
+
+print(f"Correlation: {correlation}")
+print(f"P-value: {p_value}")
+```
+
+```{python}
 
 ```
