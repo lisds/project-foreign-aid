@@ -1,0 +1,359 @@
+---
+jupyter:
+  jupytext:
+    text_representation:
+      extension: .Rmd
+      format_name: rmarkdown
+      format_version: '1.2'
+      jupytext_version: 1.15.2
+  kernelspec:
+    display_name: Python 3 (ipykernel)
+    language: python
+    name: python3
+---
+
+## Corruption and Foreign Aid
+
+```{python}
+import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
+import scipy.stats as sps
+import statsmodels.formula.api as smf
+```
+
+```{python}
+run fetch_data.py
+```
+
+```{python}
+run opening_zip_cleaning.py
+```
+
+I have always been interested with the links between foreign aid and corruption. Unfortunately in most places where aid would be most beneficial the levels of corruption are at their highest,I therfore have taken this oppertunity to have a quick look to see if the levels of corruption has any affect as to where the forign aid is spent. 
+
+Corruption_df is a dataset that holds all the recorded of Corruption perceptions index (cpi) ranks countries/territories in terms of the degree to which corruption is perceived to exist among public officials and politicians. It draws on different assessments and business opinion surveys carried out by independent and reputable institutions. it captures information about the administrative and political aspects of corruption. Broadly speaking, the surveys and assessments used to compile the index include questions relating to bribery of public officials, kickbacks in public procurement, embezzlement of public funds, and questions that probe the strength and effectiveness of public sector anti-corruption efforts.
+
+(pre 2012 the score was out of 10, and 2012 and after the score is out of 100 to indicate a change in method). 
+
+```{python}
+corruption_df.head()
+```
+
+```{python}
+corruption_df.replace('-', pd.NA, inplace=True)
+corruption_df.count()
+```
+
+Unfortunatley this dataset isn't as old as our foreign aid dataset and for many of the fist few years it is empty. I therfore have decided to just use a single year as proxy for the level of corruption for the whole tiome of the length of this dataset. Which I know may not be as accurate is I would like but will provide indiocation of the proportionate levels of corruption and the effect this has on the location of foreign aid projects. 
+
+I have therfore decided to use the year 2013, as this is the year that has the most figures for the countries while still using the new method. 
+
+```{python}
+corruption_2013_df = corruption_df[['Jurisdiction', '2013']]
+corruption_2013_df
+```
+
+For now all I want to look at is whether there is a correlation between the number of projects and the level of corruption in the country. 
+
+```{python}
+#  Creates number of projects df
+country_grouped = all_aid.groupby('countryname_WB').size()
+country_grouped_df = country_grouped.to_frame(name='count')
+country_grouped_df = country_grouped_df.rename_axis(index={'countryname_WB': 'Jurisdiction'})
+country_grouped_df
+```
+
+```{python}
+# Merge the two datasets
+merged_df = pd.merge(country_grouped_df, corruption_2013_df, on='Jurisdiction', how='inner')
+merged_df['2013'] = pd.to_numeric(merged_df['2013'], errors='coerce')
+merged_df = merged_df.rename(columns={'2013': 'CPI Score', 'count': 'No. of Projects'})
+merged_df
+```
+
+```{python}
+# Plot
+
+merged_df['CPI Score'] = pd.to_numeric(merged_df['CPI Score'], errors='coerce')
+# Remove rows with NaN values
+merged_df = merged_df.dropna(subset=['CPI Score', 'No. of Projects'])
+
+# Run linear regression
+type_single_reg = sps.linregress(merged_df['CPI Score'], merged_df['No. of Projects'])
+
+# Print the results
+print(type_single_reg)
+
+merged_df.plot.scatter(x='CPI Score', y='No. of Projects')
+plt.plot(merged_df['CPI Score'], type_single_reg.intercept + type_single_reg.slope * merged_df['CPI Score'], color='red', label='Linear Regression Line')
+
+# Add labels and title
+plt.xlabel('CPI Score')
+plt.ylabel('No. of Projects')
+plt.title('Linear regresion; CPI Score vs No. of Projects')
+
+# Show the plot
+plt.show()
+print(type_single_reg)
+
+```
+
+This graph indicates that countries with higher levels of corruption (lower CPI score), have more aid projects with in them. But what does this look like for the amount of money spent? 
+
+```{python}
+
+```
+
+```{python}
+project_size_df = all_aid.dropna(subset=['projectsize_original']).copy()
+
+def convert_to_usd(row):
+    donor = row['donor']
+    amount = row['projectsize_original']
+    rates = {'AfricanDB': 1, 'AsianDB': 1_000_000, 'DFID': 1.35, 'GEF': 1_000_000, 'GFATM': 1, 'GiZ': 1_200,
+             'IFAD': 1_000_000, 'JICA': 10_687, 'KfW': 1.2, 'WB': 1}
+    return rates[donor] * amount
+
+# Test for convert_to_usd function 
+test_data = {'donor': ['AfricanDB', 'DFID', 'JICA'],
+        'projectsize_original': [1000000, 500000, 2000000]}
+test_df = pd.DataFrame(data)
+test_df['amount_usd'] = df.apply(convert_to_usd, axis=1)
+expected_result_1 = pd.Series([1000000.0, 675000.0, 21374000000.0], name='amount_usd')
+pd.testing.assert_series_equal(df['amount_usd'], expected_result_1)
+
+# Apply the modified function to create a new column
+project_size_df['project_size_USD_calculated'] = project_size_df.apply(convert_to_usd, axis=1)
+country_grouped_usd = project_size_df.groupby('countryname_WB')['project_size_USD_calculated'].sum()
+
+country_grouped_usd_df = country_grouped_usd.to_frame(name='Total Spent ($)')
+country_grouped_usd_df = country_grouped_usd_df.rename_axis(index={'countryname_WB': 'Jurisdiction'})
+
+
+merged_usd_df = pd.merge(country_grouped_usd_df, corruption_2013_df, on='Jurisdiction', how='inner')
+merged_usd_df['2013'] = pd.to_numeric(merged_usd_df['2013'], errors='coerce')
+merged_usd_df = merged_usd_df.rename(columns={'2013': 'CPI Score'})
+
+merged_usd_df
+```
+
+```{python}
+merged_usd_df['CPI Score'] = pd.to_numeric(merged_usd_df['CPI Score'], errors='coerce')
+# Remove rows with NaN values
+merged_usd_df = merged_usd_df.dropna(subset=['CPI Score', 'Total Spent ($)'])
+
+# Run linear regression
+type_single_reg = sps.linregress(merged_usd_df['CPI Score'], merged_usd_df['Total Spent ($)'])
+
+# Print the results
+print(type_single_reg)
+
+merged_usd_df.plot.scatter(x='CPI Score', y='Total Spent ($)')
+plt.plot(merged_usd_df['CPI Score'], type_single_reg.intercept + type_single_reg.slope * merged_usd_df['CPI Score'], color='red', label='Linear Regression Line')
+
+# Add labels and title
+plt.xlabel('CPI Score')
+plt.ylabel('Total Spent ($)')
+plt.title('Linear regresion; CPI Score vs Total Spent')
+
+# Show the plot
+plt.show()
+print(type_single_reg)
+```
+
+The graph above indicates the same thing that the higher the corruption the more money spent in the area. Which contradicts my intial theory that orginisations would traditionaly choose less corrupt regions, as this would be more cost effective. However there are many more factors that need to be considered when it comes to foreign aid projects. Probebly the most major consideration is the level of poverty. I'm therfore going to attempt to see if the I can plot this to account for the poverty level. However, unfortunalty I couldn't find a comprehensive enough dataset covering enough countries that directly tried to measure poverty in the area. I therfore turned to look at development specifically using the GDP per capita to as a proxy.
+
+```{python}
+GDP_pc_df.head()
+```
+
+The data set shows the estimated GDP per capita for each country (and regions) again it includes rows for some years. Instead of picking one year like above I will this time choose the mean GDP per capita as there more time frame (and no change in method that affects score). 
+
+```{python}
+selected_columns = ['Country Name'] + [str(year) for year in range(1960, 2017)]
+year_GDP_pc_df = GDP_pc_df[selected_columns]
+year_GDP_pc_df = year_GDP_pc_df.apply(pd.to_numeric, errors='coerce')
+mean_values = year_GDP_pc_df.mean(axis=1)
+mean_gdp_df = pd.DataFrame({'Jurisdiction': GDP_pc_df['Country Name'], 'Mean GDP pc': mean_values})
+mean_gdp_df
+```
+
+```{python}
+# Merge Dfs
+merged_GDP_df = pd.merge(merged_usd_df, mean_gdp_df, on='Jurisdiction', how='inner')
+merged_GDP_df
+```
+
+```{python}
+# Plot graph
+spend = merged_GDP_df['Total Spent ($)']
+CPI = merged_GDP_df['CPI Score']
+GDP = merged_GDP_df['Mean GDP pc']
+
+def scatter_3D():
+    fig = plt.figure(figsize = (8, 8))
+    ax = fig.add_subplot(projection='3d')
+    ax.scatter(CPI, GDP, spend)
+    ax.set_xlabel('CPI score')
+    ax.set_ylabel('Mean GDP pc ($)')
+    ax.set_zlabel('Total Spent ($)')
+    ax.zaxis.labelpad=-3
+    plt.show()
+
+scatter_3D()
+```
+
+```{python}
+# this code was taken from the Statistical Adjustment in Multi-predictor Linear Regression Models noite book (https://nbviewer.org/github/matthew-brett/dsip-ipynb/blob/main/multiple_predictors_statistical_adjustment.ipynb)
+def fit_model(model_spec_string,
+              dataset,
+              slope_names_list,
+              slim_summary=True):
+    """A function to fit a two predictor linear regression,
+    using the `statsmodels.formula` library.
+    """
+
+    # fit the model, based on the `model_spec_string`, and the `dataset`
+    model = smf.ols(model_spec_string, data = dataset).fit()
+
+    # show the (slim) model summary
+    display(model.summary(slim=slim_summary))
+
+    # store the intercept
+    intercept = model.params['Intercept']
+
+    # if fitting a single predictor model, return the model
+    # the intercept, and the single slope
+    if len(slope_names_list) == 1:
+
+        slope = model.params[slope_names_list[0]]
+
+        return model, intercept, slope
+
+    # if fitting a two-predictor model, return the model,
+    # the intercept, and the two slopes
+    if len(slope_names_list) == 2:
+
+        slope_1 = model.params[slope_names_list[0]]
+
+        slope_2 = model.params[slope_names_list[1]]
+
+        return model, intercept, slope_1, slope_2
+
+(spend_corruption_GDP,spend_corruption_GDP_intercept,spend_corruption_GDP_cor_slope,spend_corruption_GDP_G_slope) = fit_model('spend ~ CPI + GDP',
+                                                         merged_GDP_df,
+                                                         ['CPI', 'GDP'])
+```
+
+```{python}
+# this code was taken from the Statistical Adjustment in Multi-predictor Linear Regression Models noite book (https://nbviewer.org/github/matthew-brett/dsip-ipynb/blob/main/multiple_predictors_statistical_adjustment.ipynb)
+def ss_two_predictors(bs_and_c, x1_vector, x2_vector, y_vector):
+    """ Sum of squares error for intercept and a pair of slopes.
+    """
+    # unpack the list containing the slope and the intercept (this now has an extra slope!)
+    b_1, b_2, c = bs_and_c
+
+    # calculate the fitted values, for this slope/intercept pairing (this now has an extra slope and extra vector!)
+    fitted_vector = b_1*x1_vector + b_2*x2_vector + c
+
+    # calculate the error vector (this is the same process as for a single predictor)
+    error = y_vector - fitted_vector
+
+    # return the value of the cost function (this is the same process as for a single predictor)
+    return np.sum(error ** 2)
+
+def make_3d_scatter(x1, x2, y,
+                    x1_slope=1,
+                    x2_slope=1,
+                    c =  1,
+                    x1_label='',
+                    x2_label='',
+                    y_label='',
+                    return_errors=False,
+                    show=True,
+                    plane_alpha=0.5,
+                    model_string ='',
+                    round_to=4,
+                    fig_size=(8,8),
+                    mx_y=...,
+                    min_y=...,
+                    x1_1_or_0=False):
+    # Create 3D scatterplot
+    sum_sq = ss_two_predictors([x1_slope, x2_slope, c], x1, x2, y)
+    ax = plt.figure(figsize=fig_size).add_subplot(111, projection='3d')
+    ax.scatter(x1,x2,y, label = 'Actual values ($y$)')
+    ax.set_xlabel(x1_label)
+    if x1_1_or_0 == True:
+        ax.set_xticks([0, 1])
+    ax.set_ylabel(x2_label)
+    ax.set_zlabel(y_label)
+    mx_x1 = x1.max()
+    mx_x2 = x2.max()
+    if mx_y == ...:
+        mx_y = y.max()
+    min_x1 = np.min([0, x1.min()])
+    min_x2 = np.min([0, x2.min()])
+    if min_y == ...:
+        min_y = np.min([0, y.min()])
+    # Plot the fitting plane.
+    plane_x = np.linspace(0, mx_x1, 50)
+    plane_y = np.linspace(0, mx_x2, 50)
+    X, Y = np.meshgrid(plane_x, plane_y)
+    Z = c + x1_slope * X + x2_slope * Y
+    ax.plot_wireframe(X,Y,Z, color = 'red', label = 'Linear regression plane', alpha = plane_alpha)
+    # Plot lines between each point and fitting plane
+    for i in np.arange(len(y)):
+            x1_point, x2_point, actual = x1[i], x2[i], y[i]
+            fitted = c + x1_point * x1_slope + x2_point * x2_slope
+            ax.plot([x1_point, x1_point], [x2_point, x2_point], [fitted, actual],
+                    linestyle=':',
+                    linewidth=0.5,
+                    color='black')
+    # Add labels to error
+    ax.plot([], [], [],
+        linestyle=':',
+        linewidth=0.5,
+        color='black',
+        label='Errors ($ \\varepsilon $)')
+    # Set the axis limits
+    ax.set_xlim(min_x1, mx_x1)
+    ax.set_ylim(min_x2, mx_x2)
+    ax.set_zlim(min_y, mx_y)
+    ax.zaxis.labelpad=-3
+    # Show the legend and title
+    plt.legend()
+    plt.title(model_string+f"\n$b_1$ = {round(x1_slope,round_to)} \n$b_2$ = {round(x2_slope,round_to)} \n$c$ = {round(c,round_to)} \n Sum of Squared Error = {round(sum_sq, 2)}")
+    if show == True:
+        plt.show()
+    if return_errors == True:
+        fitted = c + x1_slope * x1 + x2_slope*x2
+        errors = y - fitted
+        jupyprint(f"Here is the error vector for the current regression plane: {arraytex(np.atleast_2d(errors.round(2)).T)}")
+        jupyprint(f"The sum of the squared error is <b> {round(np.sum((errors)**2), 2)} </b>.")
+        return errors
+
+
+make_3d_scatter(CPI,
+                GDP,
+                spend,
+                x1_slope=spend_corruption_GDP_cor_slope,
+                x2_slope=spend_corruption_GDP_G_slope,
+                c=spend_corruption_GDP_intercept,
+                x1_label='CPI score',
+                x2_label='Mean GDP pc ($)',
+                y_label='Total Spent ($)',
+                model_string='Spend ~ CPI + GDP pc')
+
+```
+
+The graph indicates that actually even for accounting for the GDP per capita of a country the higher the level of corruption the the more money spent in the country. Also interestingly this graph also indicates that the higher the GDP the more money spent in the region which again seems counter to my initial assumptions. 
+
+Ther could be multiple reasons as for why this may be the case. 
+1. Anomalies both china and India have received a large proportion of in comparison to other regions. Therefore in further work it may be intersting on caluclating the total spend per capita (instead of total spend). Or it may be easier to just look at the number of projects rather than spend. 
+2. It may be a result of having some orginisations that lend aid across the globe and some that are region specific. It may be better to only llok at the world bank for example.
+3. GDP per capita may not be sufficent proxyfor poverty, more work may be required to find a better proxy or measure
+4. May be more sector specific, would be interseting to see if there is more evident corelations acrossdifferent sectors. 
+5. Taking one CPI score from one year may not be an accurate representation of corruption over the time beriod (1965 - 2016),  however I'm unsure how to navigate tbis issue, as from my research there's no suuficent measure of corruption going back to a similair lenght period across a wide range of contries. 
+6. There are many more factors as to why aid is taken and that these may need to be included to gauge a better understandings as to why aid projects are chosen.
+
