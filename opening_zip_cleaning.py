@@ -15,7 +15,8 @@ with ZipFile(dest_path, 'r') as my_zip:
     my_zip.extract(csv_filename, path='temp')
     csv_path = Path('temp') / csv_filename
     df = pd.read_csv(csv_path)
-
+    
+# Remove the random donor 
 df = df[df['donor'] != '2.950000048']
 df = df.dropna(subset=['donor'])
 
@@ -26,11 +27,10 @@ last_columns = df.iloc[:, -20:]
 all_aid = pd.concat([first_33_columns, last_columns], axis=1)
 
 # Select the last row from the original DataFrame
-
 unique_donors = df['donor'].unique()
 
 # Create a list to store dataset names
-dataset_names = []
+dataset_names = ['all_aid']
 
 # Create DataFrames for each donor with specific names
 for donor in unique_donors:

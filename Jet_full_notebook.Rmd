@@ -15,14 +15,11 @@ jupyter:
 # Notebook B
 
 ```{python}
-
-# %run fetch_data.py
+run fetch_data.py
 ```
 
 ```{python}
-# %run opening_zip_cleaning.py
 
-run fetch_data
 ```
 
 ```{python}

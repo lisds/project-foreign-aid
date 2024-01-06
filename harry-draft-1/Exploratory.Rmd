@@ -1,0 +1,53 @@
+---
+jupyter:
+  jupytext:
+    text_representation:
+      extension: .Rmd
+      format_name: rmarkdown
+      format_version: '1.2'
+      jupytext_version: 1.15.2
+  kernelspec:
+    display_name: Python 3 (ipykernel)
+    language: python
+    name: python3
+---
+
+```{python}
+import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
+```
+
+This file inended to be more an exploration of the dataset, (what was missed in the original report) however I had to change tack and jump straight into exploring corruption 
+
+```{python}
+run fetch_data.py
+```
+
+```{python}
+run opening_zip_cleaning.py
+```
+
+```{python}
+def bar_value_counts_multiple_datasets(dataset_names, column_name, top_n=50, figsize=(10, 6), title=None, xlabel=None, ylabel=None, show_df_name=True):
+    for df_name in dataset_names:
+        df = globals()[df_name]  # Assuming your DataFrames are defined in the global scope
+        x = df[column_name].value_counts().sort_values(ascending=False).head(top_n)
+        x.plot(kind='bar', figsize=figsize)
+        
+        # Include DataFrame name in the title if show_df_name is True
+        plot_title = f"{title if title else 'Title'}"
+        if show_df_name:
+            plot_title += f" - {df_name}"
+        
+        plt.title(plot_title)
+        plt.xlabel(xlabel if xlabel else 'X')
+        plt.ylabel(ylabel if ylabel else 'Y')
+        plt.show()
+
+bar_value_counts_multiple_datasets(['all_aid'], 'donor', title='Aid Distribution by Donor', xlabel='Donor', ylabel='Number of Aid Projects', show_df_name=False)
+```
+
+```{python}
+bar_value_counts_multiple_datasets(dataset_names, 'countryname_COW', title='Aid Distribution by Country', xlabel='Country', ylabel='Number of Aid Projects')
+```

@@ -89,7 +89,7 @@ Eval_lag is the difference between the date of project evaluation and the date o
 DFAT_df.describe()
 ```
 
-Even more negative mean eval_lag value for DFID, showing how most projects on average were evaluated 2272 days before the completion date.
+Even more negative mean eval_lag value for DFID, showing how most projects on average were evaluated 2272 days before the completion date. **Average wasn't 2272 that was the min value the mean was 154**
 
 ```{python}
 DFID_df.describe()
@@ -156,7 +156,6 @@ grouped_by_year_start = all_aid.groupby('start_year')
 # Count the number of projects in each year
 projects_count_by_year_start = grouped_by_year_start.size()
 projects_count_by_year_start
-
 ```
 
 ```{python}
@@ -168,10 +167,15 @@ projects_count_by_year_start.plot(kind='bar', color='skyblue')
 plt.title('Number of Projects by Start Year')
 plt.xlabel('Start Year')
 plt.ylabel('Number of Projects')
-plt.show()
+n = 5
+plt.xticks(range(0, len(projects_count_by_year_start.index), n), projects_count_by_year_start.index[::n], rotation=45)
+plt.show()   
 ```
 
 The bar chart above summarises the trend in start years, showing that the number of projects rapidly increased up until the early 2000s after which they started decreasing, perhaps due to a link between 9/11 and aid inflow. However, the number of projects has continued to decrease in recent years, which is slightly counterintuitive. There are a few projects with start years post 2060, which raised some confusion and we've deemed them to be data entry errors post some further investigation. This is because most of the completion years of these projects seem to be pre 2000s and it's unrealistic for start dates to be decided so far ahead in advance.
+
+**When I had looked at this before I was ill I had come to the conclusion that the errors of having projects starting in the long distant future (2060 and beyond) was a result of datetime assuming the wrong century (2070 instead of 1970)**
+
 
 ```{python}
 start_after_2000 = all_aid[all_aid['start_year'] > 2000]
@@ -194,6 +198,17 @@ start_after_2060
 ```
 
 This analysis seems to contradict our previous analysis of completion years (where we created our own column based on completion date, whereas this is included within the dataset) as the trend observed here is different to what was observed previously. This could either be due to data inconsistencies within the data set or a data manipulation error on our end. 
+
+**Not sure what theyre trying to say here but, the dataset does provide two columns startyear and completionyear that have some of the years already completed. For start year it seamms that the original column (startyear) provides a better result as it doesn't have these long distance future projects. However for completionyear it seems that it has only done it for a minority of the projects and therfore the results shown in the new created column may be more useful, however the issue of a large number of 1965 completiond ates still persists**
+
+```{python}
+all_aid.groupby('startyear').size().plot(kind='bar', color='skyblue')
+plt.title('Number of Projects by Start Year')
+plt.xlabel('Start Year')
+plt.ylabel('Number of Projects')
+plt.xticks(range(0, len(all_aid.groupby('startyear').size().index), n), all_aid.groupby('startyear').size().index[::n], rotation=45)
+plt.show()   
+```
 
 ```{python}
 all_aid['completionyear'].value_counts()
@@ -251,7 +266,7 @@ def x_time_plot(df, x_col, y_col, n):
     ax.legend(title=y_col, bbox_to_anchor=(1, 1))
     plt.show()
 
-x_time_plot(all_aid, 'startyear', 'countryname_WB', 5)
+x_time_plot(all_aid, 'startyear', 'countryname_WB', 10)
 ```
 
 ```{python}
@@ -262,7 +277,7 @@ new_data_function
 This function is a modification of the previous function and plots the number of projects per country. This proved to be very useful for our subsequent more granular analysis per country, helping explain country-specific trends, e.g. those observed in China. 
 
 ```{python}
-def x_time_plot(df, x_col, y_col, country_name):
+def x_time_plot_country(df, x_col, y_col, country_name):
     """
     Group the DataFrame by x_col, count occurrences of values in y_col for a specific country,
     and plot the results in a line graph.
@@ -291,34 +306,34 @@ def x_time_plot(df, x_col, y_col, country_name):
     plt.show()
 
 # Example usage:
-x_time_plot(all_aid, 'startyear', 'countryname_COW', 'China')
+x_time_plot_country(all_aid, 'startyear', 'countryname_COW', 'China')
 
 ```
 
 In the case of China, as above, it received a significant amount of funding (in terms of the number of projects) until 1995, after which the amount of funding slowly started declining, as China became self-sustaining. Generally, according to the OECD, during the 1970s and 1980s, Communist countries in Asia - particularly China and Vietnam - started to receive large amounts of aid. <br> China is an excellent example of how well-directed aid can consequently boost the country's economic development. However, it is difficult to establish causality because of the various extrinsic factors at play. 
 
 ```{python}
-x_time_plot(all_aid, 'startyear', 'countryname_COW', 'Indonesia')
+x_time_plot_country(all_aid, 'startyear', 'countryname_COW', 'Indonesia')
 ```
 
 ```{python}
-x_time_plot(all_aid, 'startyear', 'countryname_WB', 'Africa')
+x_time_plot_country(all_aid, 'startyear', 'countryname_WB', 'Africa')
 ```
 
 ```{python}
-x_time_plot(all_aid, 'startyear', 'countryname_COW', 'Tanzania')
+x_time_plot_country(all_aid, 'startyear', 'countryname_COW', 'Tanzania')
 ```
 
 ```{python}
-x_time_plot(all_aid, 'startyear', 'countryname_COW', 'Morocco')
+x_time_plot_country(all_aid, 'startyear', 'countryname_COW', 'Morocco')
 ```
 
 ```{python}
-x_time_plot(all_aid, 'startyear', 'countryname_COW', 'India')
+x_time_plot_country(all_aid, 'startyear', 'countryname_COW', 'India')
 ```
 
 ```{python}
-x_time_plot(all_aid, 'startyear', 'countryname_COW', 'Mexico')
+x_time_plot_country(all_aid, 'startyear', 'countryname_COW', 'Mexico')
 ```
 
 ```{python}
@@ -338,6 +353,7 @@ def convert_to_usd(row):
     rates = {'AfricanDB': 1, 'AsianDB': 1_000_000, 'DFID': 1.35, 'GEF': 1_000_000, 'GFATM': 1, 'GiZ': 1_200,
              'IFAD': 1_000_000, 'JICA': 10_687, 'KfW': 1.2, 'WB': 1}
     return rates[donor] * amount
+
 
 # Apply the modified function to create a new column
 project_size_df['project_size_USD_calculated'] = project_size_df.apply(convert_to_usd, axis=1)
